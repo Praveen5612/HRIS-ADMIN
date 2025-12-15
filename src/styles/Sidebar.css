@@ -118,3 +118,37 @@
   font-size: 14px;
   opacity: 0.8;
 }
+
+/* ===============================
+   MOBILE SIDEBAR (REQUIRED)
+================================ */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 64px; /* navbar height */
+    left: -260px;
+    width: 260px;
+    height: calc(100vh - 64px);
+    background: #0f172a; /* or your sidebar bg */
+    z-index: 200;
+    transition: left 0.3s ease;
+  }
+
+  .sidebar.mobile-open {
+    left: 0;
+  }
+
+  .app-content {
+    margin-left: 0 !important;
+  }
+}
+
+/* ===============================
+   SIDEBAR OVERLAY
+================================ */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 150;
+}

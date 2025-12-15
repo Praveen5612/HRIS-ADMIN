@@ -1,0 +1,209 @@
+/* ===============================
+   PAGE
+================================ */
+.dd-page {
+  padding: 20px 24px;
+  font-family: "Inter", system-ui, sans-serif;
+  color: #1f2937;
+}
+
+.dd-page h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+/* ===============================
+   ACTION BAR
+================================ */
+.dd-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.dd-actions.inline {
+  margin-bottom: 18px;
+}
+
+.dd-actions input {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  min-width: 220px;
+}
+
+.dd-actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ===============================
+   GRID
+================================ */
+.dd-grid {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 24px;
+}
+
+/* ===============================
+   CARD
+================================ */
+.card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+/* ===============================
+   DEPARTMENT LIST
+================================ */
+.dept-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dept-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dept-list li:hover {
+  background: #f1f5f9;
+}
+
+.dept-list li.active {
+  background: #e0e7ff;
+  font-weight: 700;
+}
+
+.dept-list .count {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* ===============================
+   RIGHT PANEL HEADER
+================================ */
+.dept-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.emp-count {
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.emp-count strong {
+  color: #2563eb;
+}
+
+/* ===============================
+   TABLE
+================================ */
+.table-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  border-radius: 14px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table thead {
+  background: #0f172a;
+}
+
+.table th {
+  padding: 16px;
+  color: #ffffff;
+  font-weight: 600;
+  text-align: left;
+}
+
+.table td {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #111827;
+}
+
+.table th:last-child,
+.table td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* ===============================
+   HINT
+================================ */
+.hint {
+  font-size: 14px;
+  color: #6b7280;
+  padding: 40px 0;
+  text-align: center;
+}
+
+/* ===============================
+   MOBILE
+================================ */
+@media (max-width: 1000px) {
+  .dd-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .dd-page {
+    padding: 16px;
+  }
+
+  .dd-actions {
+    flex-direction: column;
+  }
+
+  .dd-actions input,
+  .dd-actions button {
+    width: 100%;
+  }
+
+  .dept-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}

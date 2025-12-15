@@ -1,0 +1,206 @@
+/* ===============================
+   PAGE
+================================ */
+.companies-page {
+  padding: 96px 28px 40px;
+  background: #f5f7fb;
+  min-height: 100vh;
+  font-family: "Inter", system-ui, sans-serif;
+  color: #111827;
+}
+
+.companies-page h2 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 28px;
+}
+
+/* ===============================
+   EMPTY STATE
+================================ */
+.empty {
+  padding: 40px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+/* ===============================
+   COMPANY LIST
+================================ */
+.company-list {
+  display: grid;
+  gap: 20px;
+}
+
+/* ===============================
+   COMPANY CARD
+================================ */
+.company-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.company-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* ACTIVE COMPANY */
+.company-card.active {
+  border: 2px solid #2563eb;
+}
+
+/* ===============================
+   COMPANY HEADER
+================================ */
+.company-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.company-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.company-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.company-actions button {
+  background: #ffffff;
+  color: #1e40af;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.company-actions button:hover {
+  background: #e0e7ff;
+}
+
+/* READ ONLY BADGE */
+.readonly-badge {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ===============================
+   DEPARTMENTS
+================================ */
+.department-list {
+  padding: 18px 22px 10px;
+  display: grid;
+  gap: 16px;
+}
+
+.department-card {
+  background: #f9fafb;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+/* DEPARTMENT HEADER */
+.department-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+/* ===============================
+   DESIGNATIONS
+================================ */
+.designation-list {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.designation-list li {
+  list-style: none;
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ===============================
+   BILLING INFO
+================================ */
+.billing-info {
+  padding: 14px 22px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 13px;
+  color: #374151;
+  background: #f8fafc;
+}
+
+/* ===============================
+   ANIMATIONS
+================================ */
+.company-card,
+.department-card {
+  animation: fadeUp 0.4s ease;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+@media (max-width: 768px) {
+  .companies-page {
+    padding: 88px 16px 30px;
+  }
+
+  .company-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .company-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .designation-list {
+    gap: 8px;
+  }
+}

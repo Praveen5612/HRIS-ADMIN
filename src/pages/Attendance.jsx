@@ -1,166 +1,292 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "../styles/Attendance.css";
-
+import { Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   ArcElement,
   Tooltip,
   Legend,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
 } from "chart.js";
-import { Pie, Line } from "react-chartjs-2";
+import { makeEmployees } from "../utils/mockData";
 
-import { makeEmployees } from "../utils/mockData.js";
+ChartJS.register(ArcElement, Tooltip, Legend);
 
-ChartJS.register(
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement
-);
+/* =============================
+   CONSTANTS
+============================= */
+const DEPARTMENTS = [
+  "HR",
+  "IT",
+  "Finance",
+  "Sales",
+  "Marketing",
+  "Operations",
+];
 
-/* ===============================
-   DATA
-================================ */
-const employees = makeEmployees(1000);
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const PAGE_SIZE = 20;
 
-const genDay = () => {
+/* =============================
+   DATE HELPERS
+============================= */
+const randomStatus = () => {
   const r = Math.random();
-  if (r < 0.1) return { status: "Leave" };
-  if (r < 0.25) return { status: "Absent" };
-  return { status: "Present", in: "09:00", out: "18:00" };
+  if (r < 0.1) return "L";
+  if (r < 0.2) return "A";
+  if (r < 0.3) return "M";
+  return "P";
 };
 
-const genWeek = () =>
-  DAYS.reduce((a, d) => {
-    a[d] = genDay();
-    return a;
-  }, {});
+const getDateRange = (from, to) => {
+  const dates = [];
+  const start = new Date(from + "-01");
+  const end = new Date(to + "-01");
+  end.setMonth(end.getMonth() + 1);
 
-/* ===============================
+  while (start < end) {
+    if (start.getDay() !== 0) {
+      dates.push(start.toISOString().slice(0, 10));
+    }
+    start.setDate(start.getDate() + 1);
+  }
+  return dates;
+};
+
+/* =============================
    COMPONENT
-================================ */
+============================= */
 export default function Attendance() {
-  const [page, setPage] = useState(1);
+  /* Entry */
+  const [department, setDepartment] = useState(null);
+
+  /* Filters */
   const [search, setSearch] = useState("");
-  const [modal, setModal] = useState(null);
+  const [designation, setDesignation] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [fromMonth, setFromMonth] = useState("2024-06");
+  const [toMonth, setToMonth] = useState("2024-07");
 
-  const data = useMemo(
-    () => employees.map((e) => ({ ...e, week: genWeek() })),
-    []
+  /* Pagination */
+  const [page, setPage] = useState(1);
+
+  /* Employees */
+  const employees = useMemo(() => {
+    if (!department) return [];
+    return makeEmployees(400).filter(e => e.department === department);
+  }, [department]);
+
+  /* Dates */
+  const dates = useMemo(
+    () => getDateRange(fromMonth, toMonth),
+    [fromMonth, toMonth]
   );
 
-  const filtered = useMemo(() => {
-    return data.filter((e) =>
-      `${e.id} ${e.name} ${e.department} ${e.role}`
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    );
-  }, [data, search]);
+  /* Attendance State */
+  const [attendance, setAttendance] = useState({});
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const rows = filtered.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
-  );
+  useEffect(() => {
+    if (!department) return;
 
-  /* Charts */
-  const pieData = useMemo(() => {
-    let p = 0, a = 0, l = 0;
-    data.forEach((e) => {
-      const s = e.week.Mon.status;
-      if (s === "Present") p++;
-      else if (s === "Absent") a++;
-      else l++;
+    const data = {};
+    employees.forEach(e => {
+      data[e.id] = {};
+      dates.forEach(d => {
+        const status = randomStatus();
+        data[e.id][d] = {
+          status,
+          request:
+            status === "M"
+              ? { state: "PENDING", reason: "Network issue" }
+              : null,
+        };
+      });
     });
+
+    setAttendance(data);
+    setPage(1);
+  }, [employees, dates, department]);
+
+  /* Filtered Employees */
+  const filteredEmployees = useMemo(() => {
+    return employees.filter(e => {
+      const matchSearch =
+        e.id.toLowerCase().includes(search.toLowerCase()) ||
+        e.name.toLowerCase().includes(search.toLowerCase());
+
+      const matchRole = !designation || e.role === designation;
+
+      const matchStatus =
+        !statusFilter ||
+        Object.values(attendance[e.id] || {}).some(
+          d => d.status === statusFilter
+        );
+
+      return matchSearch && matchRole && matchStatus;
+    });
+  }, [employees, search, designation, statusFilter, attendance]);
+
+  /* Pagination */
+  const totalPages = Math.ceil(filteredEmployees.length / PAGE_SIZE);
+
+  const paginatedEmployees = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredEmployees.slice(start, start + PAGE_SIZE);
+  }, [filteredEmployees, page]);
+
+  /* Pending Requests */
+  const pendingRequests = useMemo(() => {
+    const list = [];
+    paginatedEmployees.forEach(e => {
+      Object.entries(attendance[e.id] || {}).forEach(([day, d]) => {
+        if (d.request?.state === "PENDING") {
+          list.push({ emp: e, day });
+        }
+      });
+    });
+    return list;
+  }, [paginatedEmployees, attendance]);
+
+  /* Approve / Reject */
+  const actOnRequest = (empId, day, decision) => {
+    setAttendance(prev => ({
+      ...prev,
+      [empId]: {
+        ...prev[empId],
+        [day]:
+          decision === "APPROVE"
+            ? { status: "P", source: "MANUAL_BY_HR" }
+            : {
+                ...prev[empId][day],
+                request: { ...prev[empId][day].request, state: "REJECTED" },
+              },
+      },
+    }));
+  };
+
+  /* Pie Chart */
+  const pieData = useMemo(() => {
+    let p = 0, a = 0, l = 0, m = 0;
+    filteredEmployees.forEach(e =>
+      Object.values(attendance[e.id] || {}).forEach(d => {
+        if (d.status === "P") p++;
+        else if (d.status === "A") a++;
+        else if (d.status === "L") l++;
+        else if (d.status === "M") m++;
+      })
+    );
     return {
-      labels: ["Present", "Absent", "Leave"],
+      labels: ["Present", "Absent", "Leave", "Missing"],
       datasets: [
         {
-          data: [p, a, l],
-          backgroundColor: ["#22c55e", "#ef4444", "#f59e0b"],
+          data: [p, a, l, m],
+          backgroundColor: ["#22c55e", "#ef4444", "#f59e0b", "#8b5cf6"],
         },
       ],
     };
-  }, [data]);
+  }, [attendance, filteredEmployees]);
 
-  const lineData = {
-    labels: Array.from({ length: 30 }, (_, i) => i + 1),
-    datasets: [
-      {
-        label: "Attendance %",
-        data: Array.from({ length: 30 }, () =>
-          (70 + Math.random() * 30).toFixed(1)
-        ),
-        borderColor: "#3b82f6",
-        tension: 0.3,
-      },
-    ],
-  };
-
-  /* Export */
+  /* Export (DATE-BASED COLUMNS) */
   const exportCSV = () => {
-    const rows = filtered.map((e) => {
-      const r = { ID: e.id, Name: e.name };
-      DAYS.forEach((d) => {
-        const x = e.week[d];
-        r[d] =
-          x.status === "Present"
-            ? `${x.in}-${x.out}`
-            : x.status === "Absent"
-            ? "A"
-            : "L";
+    const rows = paginatedEmployees.map(e => {
+      const row = {
+        EmpID: e.id,
+        Name: e.name,
+        Designation: e.role,
+      };
+      dates.forEach(d => {
+        row[d] = attendance[e.id]?.[d]?.status || "";
       });
-      return r;
+      return row;
     });
 
     const csv = [
       Object.keys(rows[0]).join(","),
-      ...rows.map((r) => Object.values(r).join(",")),
+      ...rows.map(r => Object.values(r).join(","))
     ].join("\n");
 
     const blob = new Blob([csv], { type: "text/csv" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "attendance.csv";
+    a.download = `${department}_attendance_${fromMonth}_to_${toMonth}.csv`;
     a.click();
   };
 
+  /* =============================
+     RENDER
+  ============================= */
+
+  if (!department) {
+    return (
+      <div className="attendance-page">
+        <h2>Select Department</h2>
+        <div className="dept-grid">
+          {DEPARTMENTS.map(d => (
+            <button key={d} className="dept-btn" onClick={() => setDepartment(d)}>
+              {d}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="attendance-page">
-      <h2>Attendance Dashboard</h2>
+      <h2>{department} Attendance</h2>
 
-      {/* Charts */}
+      {/* Charts + Requests */}
       <div className="charts">
         <div className="card">
-          <h4>Today</h4>
           <Pie data={pieData} />
         </div>
-        <div className="card">
-          <h4>Monthly Trend</h4>
-          <Line data={lineData} />
+
+        <div className="card hr-panel">
+          <h4>Pending Requests</h4>
+          {pendingRequests.length === 0 && <p>No pending requests</p>}
+          {pendingRequests.map((r, i) => (
+            <div key={i} className="request-row">
+              <div>
+                <strong>{r.emp.name}</strong>
+                <div>{r.emp.role} — {r.day}</div>
+              </div>
+              <div>
+                <button onClick={() => actOnRequest(r.emp.id, r.day, "APPROVE")}>
+                  Approve
+                </button>
+                <button
+                  className="danger"
+                  onClick={() => actOnRequest(r.emp.id, r.day, "REJECT")}
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Controls */}
+      {/* Filters */}
       <div className="controls">
-        <input
-          placeholder="Search employee..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
-        <button onClick={exportCSV}>Export Excel</button>
+        <input placeholder="Search ID / Name" onChange={e => setSearch(e.target.value)} />
+
+        <select onChange={e => setDesignation(e.target.value)}>
+          <option value="">All Designations</option>
+          {[...new Set(employees.map(e => e.role))].map(r => (
+            <option key={r}>{r}</option>
+          ))}
+        </select>
+
+        <select onChange={e => setStatusFilter(e.target.value)}>
+          <option value="">All Status</option>
+          <option value="P">Present</option>
+          <option value="A">Absent</option>
+          <option value="M">Missing</option>
+          <option value="L">Leave</option>
+        </select>
+
+        <input type="month" value={fromMonth} onChange={e => setFromMonth(e.target.value)} />
+        <input type="month" value={toMonth} onChange={e => setToMonth(e.target.value)} />
+
+        <button onClick={exportCSV}>Export</button>
       </div>
 
       {/* Table */}
@@ -168,41 +294,25 @@ export default function Attendance() {
         <table>
           <thead>
             <tr>
-              <th>ID</th>
+              <th>Emp ID</th>
               <th>Name</th>
-              {DAYS.map((d) => (
+              <th>Designation</th>
+              {dates.map(d => (
                 <th key={d}>{d}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {rows.map((e) => (
+            {paginatedEmployees.map(e => (
               <tr key={e.id}>
                 <td>{e.id}</td>
                 <td>{e.name}</td>
-                {DAYS.map((d) => {
-                  const x = e.week[d];
-                  return (
-                    <td
-                      key={d}
-                      className={`cell ${x.status.toLowerCase()}`}
-                      title={
-                        x.status === "Present"
-                          ? `In ${x.in} / Out ${x.out}`
-                          : x.status
-                      }
-                      onClick={() =>
-                        setModal({ emp: e, day: d, data: x })
-                      }
-                    >
-                      {x.status === "Present"
-                        ? `${x.in}-${x.out}`
-                        : x.status === "Absent"
-                        ? "A"
-                        : "L"}
-                    </td>
-                  );
-                })}
+                <td>{e.role}</td>
+                {dates.map(d => (
+                  <td className={`status ${attendance[e.id]?.[d]?.status}`}>
+                    {attendance[e.id]?.[d]?.status}
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
@@ -211,37 +321,14 @@ export default function Attendance() {
 
       {/* Pagination */}
       <div className="pagination">
-        <button disabled={page === 1} onClick={() => setPage(page - 1)}>
+        <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>
           Prev
         </button>
-        <span>
-          Page {page} / {totalPages}
-        </span>
-        <button
-          disabled={page === totalPages}
-          onClick={() => setPage(page + 1)}
-        >
+        <span>Page {page} of {totalPages}</span>
+        <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
           Next
         </button>
       </div>
-
-      {/* Modal */}
-      {modal && (
-        <div className="modal" onClick={() => setModal(null)}>
-          <div onClick={(e) => e.stopPropagation()}>
-            <h3>{modal.emp.name}</h3>
-            <p>Day: {modal.day}</p>
-            <p>Status: {modal.data.status}</p>
-            {modal.data.in && (
-              <>
-                <p>In: {modal.data.in}</p>
-                <p>Out: {modal.data.out}</p>
-              </>
-            )}
-            <button onClick={() => setModal(null)}>Close</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
