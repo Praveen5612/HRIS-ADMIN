@@ -27,28 +27,20 @@ export default function Login({ onLogin }) {
       return;
     }
 
-    // ✅ DEMO AUTH RULE
+    // DEMO LOGIN (UNCHANGED LOGIC)
     if (form.email === "admin@company.com" && form.password === "1234") {
-      const authPayload = {
-        email: form.email,
+      const user = {
+        email: form.email.trim(),
         company: form.company,
-        role: "ADMIN",
-
-        // ⬇️ stored only for demo / frontend
-        credentials: {
-          email: form.email,
-          password: form.password,
-        },
-
+        role: null,
+        department: null,
+        verified: false,
         loggedAt: new Date().toISOString(),
       };
 
-      // 🔐 SINGLE SOURCE OF TRUTH
-      localStorage.setItem("auth_user", JSON.stringify(authPayload));
-
-      onLogin(authPayload);
-
-      navigate("/admin/dashboard", { replace: true });
+      localStorage.setItem("auth_user", JSON.stringify(user));
+      onLogin(user);
+      navigate("/role", { replace: true });
     } else {
       alert("Invalid email or password");
     }
@@ -57,7 +49,7 @@ export default function Login({ onLogin }) {
   return (
     <div className="login-page">
       <form className="login-card" onSubmit={submit}>
-        <h2>Admin Login</h2>
+        <h2>Login</h2>
 
         <label>Company</label>
         <select
@@ -68,7 +60,7 @@ export default function Login({ onLogin }) {
         >
           <option value="">Select Company</option>
           {companies.map((c) => (
-            <option key={c}>{c}</option>
+            <option key={c} value={c}>{c}</option>
           ))}
         </select>
 
@@ -90,7 +82,7 @@ export default function Login({ onLogin }) {
           }
         />
 
-        <button type="submit">Login</button>
+        <button type="submit">Continue</button>
 
         <p className="hint">
           Demo: admin@company.com / 1234

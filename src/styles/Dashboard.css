@@ -194,3 +194,29 @@
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+/* ===============================
+   🔧 PRODUCTION HOTFIXES ONLY
+================================ */
+
+/* Prevent horizontal scroll (deploy issue) */
+.dashboard-container {
+  overflow-x: hidden;
+}
+
+/* Fix chart canvas overflow on deploy */
+.chart-section canvas {
+  max-width: 100% !important;
+}
+
+/* Sidebar + content alignment safety */
+.app-content {
+  overflow-x: hidden;
+}
+
+/* Mobile padding correction */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}

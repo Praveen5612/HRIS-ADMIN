@@ -31,7 +31,7 @@ ChartJS.register(
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 const DEPARTMENTS = ["HR","Finance","IT","Sales","Operations","Marketing"];
 
-// 🔹 SAME COMPANIES AS LOGIN
+// 🔹 KEPT (NOT WIRED YET – AS REQUESTED)
 const COMPANIES = [
   "Black Cube Technologies",
   "Acme Corp",
@@ -62,8 +62,7 @@ function generateAttendance(employees) {
 
   employees.forEach(emp => {
     DAYS.forEach(day => {
-      const present = Math.random() < 0.9;
-      if (!present) return;
+      if (Math.random() > 0.9) return;
 
       weekly[day]++;
       deptWise[emp.department]++;
@@ -83,15 +82,17 @@ function generateAttendance(employees) {
 const Dashboard = ({ user }) => {
   const navigate = useNavigate();
 
-  // 🔐 Active company context (refresh-safe)
-  const activeCompany =
-    localStorage.getItem("active_company") || user?.company || "Company";
-
+  // ✅ HOOKS FIRST (RULES-OF-HOOKS SAFE)
   const employees = useMemo(() => makeEmployees(1000), []);
   const attendance = useMemo(
     () => generateAttendance(employees),
     [employees]
   );
+
+  // 🔐 GUARD AFTER HOOKS
+  if (!user?.company) {
+    return <h3>No company context found</h3>;
+  }
 
   /* =======================
      KPIs
@@ -105,7 +106,7 @@ const Dashboard = ({ user }) => {
     todayIndex >= 1 && todayIndex <= 5 ? DAYS[todayIndex - 1] : null;
 
   const presentToday = todayKey ? attendance.weekly[todayKey] : 0;
-  const absentToday = todayKey ? employees.length - presentToday : 0;
+  const absentToday = employees.length - presentToday;
   const onLeave = Math.floor(employees.length * 0.05);
 
   /* =======================
@@ -144,20 +145,51 @@ const Dashboard = ({ user }) => {
   return (
     <div className="dashboard-container">
       <h2 className="dashboard-title">
-        {activeCompany} — HR Dashboard
+        {user.company} — HR Dashboard
       </h2>
 
       {/* ================= KPI GRID ================= */}
       <div className="stats-grid four-col">
-        <KPI title="Total Employees" value={employees.length} onClick={() => navigate("/admin/employees")} />
-        <KPI title="Present Today" value={presentToday} onClick={() => navigate("/admin/attendence")} />
-        <KPI title="Absent Today" value={absentToday} onClick={() => navigate("/admin/attendence")} />
-        <KPI title="On Leave" value={onLeave} onClick={() => navigate("/admin/leavemanagement")} />
+        <KPI
+          title="Total Employees"
+          value={employees.length}
+          onClick={() => navigate("/admin/employees")}
+        />
+        <KPI
+          title="Present Today"
+          value={presentToday}
+          onClick={() => navigate("/admin/attendance")}
+        />
+        <KPI
+          title="Absent Today"
+          value={absentToday}
+          onClick={() => navigate("/admin/attendance")}
+        />
+        <KPI
+          title="On Leave"
+          value={onLeave}
+          onClick={() => navigate("/admin/leavemanagement")}
+        />
 
-        <KPI title="Total Salary" value={`₹${totalSalary.toLocaleString()}`} onClick={() => navigate("/admin/accounts")} />
-        <KPI title="Salary Processed" value={`₹${processedSalary.toLocaleString()}`} type="success" onClick={() => navigate("/admin/accounts")} />
-        <KPI title="Salary Pending" value={`₹${pendingSalary.toLocaleString()}`} type="warning" onClick={() => navigate("/admin/accounts")} />
-        <KPI title="Companies" value={COMPANIES.length} onClick={() => navigate("/admin/companies")} />
+        <KPI
+          title="Total Salary"
+          value={`₹${totalSalary.toLocaleString()}`}
+        />
+        <KPI
+          title="Salary Processed"
+          value={`₹${processedSalary.toLocaleString()}`}
+          type="success"
+        />
+        <KPI
+          title="Salary Pending"
+          value={`₹${pendingSalary.toLocaleString()}`}
+          type="warning"
+        />
+        <KPI
+          title="Companies"
+          value={COMPANIES.length}
+          onClick={() => navigate("/admin/companies")}
+        />
       </div>
 
       {/* ================= CHARTS ================= */}
@@ -180,7 +212,7 @@ const Dashboard = ({ user }) => {
         </section>
 
         <section className="chart-section heatmap">
-          <h3>Attendance Heatmap (Accounting Insight)</h3>
+          <h3>Attendance Heatmap</h3>
           {DAYS.map(day => (
             <div key={day} className="heatmap-row">
               <span>{day}</span>

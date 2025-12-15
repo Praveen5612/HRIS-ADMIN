@@ -1,55 +1,110 @@
+/* ===============================
+   WRAPPER
+================================ */
 .employee-list-wrap {
   background: #f8fafc;
-  padding: 16px;
+  padding: 12px;
   border-radius: 12px;
+  overflow-x: auto;
 }
 
-/* FILTER BAR */
+/* ===============================
+   FILTER BAR (ONE LINE)
+================================ */
 .list-controls {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 12px;
 }
 
 .list-controls input,
 .list-controls select {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 13px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  font-size: 12px;
+  background: #ffffff;
+  color: #0f172a;
 }
 
-/* TABLE */
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #0f172a;
+}
+
+/* Buttons */
+.clear-btn {
+  background: #e5e7eb;
+  color: #0f172a;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.export-btn {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* ===============================
+   TABLE
+================================ */
 .employee-table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
+  background: #ffffff;
   border-radius: 10px;
   overflow: hidden;
 }
 
-.employee-table th,
-.employee-table td {
-  padding: 10px 12px;
-  font-size: 13px;
-  border-bottom: 1px solid #eef2f7;
-}
-
+/* HEADER */
 .employee-table thead th {
-  background: #f1f5f9;
-  font-weight: 600;
-}
-
-.inactive-row {
-  opacity: 0.55;
-}
-
-/* STATUS */
-.status {
-  padding: 4px 10px;
-  border-radius: 999px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 8px;
   font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* BODY */
+.employee-table td {
+  padding: 6px 8px;
+  font-size: 12px;
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.employee-table tbody tr:hover {
+  background: #f1f5f9;
+}
+
+/* INACTIVE ROW */
+.inactive-row {
+  opacity: 0.6;
+}
+
+/* ===============================
+   STATUS
+================================ */
+.status {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
 }
 
 .status.active {
@@ -62,62 +117,84 @@
   color: #991b1b;
 }
 
-/* ACTION MENU */
-.action-menu {
-  position: relative;
+/* ===============================
+   ACTION BUTTONS (INLINE)
+================================ */
+.row-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
 }
 
-.action-trigger {
+.row-actions button {
   border: none;
-  background: transparent;
-  font-size: 18px;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
   cursor: pointer;
+  color: #ffffff;
 }
 
-.action-dropdown {
-  position: absolute;
-  right: 0;
-  top: 26px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-  border: 1px solid #e5e7eb;
-  z-index: 20;
-  min-width: 150px;
+/* Action colors */
+.row-actions .edit {
+  background: #2563eb;
 }
 
-.action-dropdown button {
-  width: 100%;
-  border: none;
-  background: none;
-  padding: 8px 12px;
-  text-align: left;
-  font-size: 13px;
-  cursor: pointer;
+.row-actions .activate {
+  background: #16a34a;
 }
 
-.action-dropdown button:hover {
-  background: #f1f5f9;
+.row-actions .deactivate {
+  background: #d97706;
 }
 
-.action-dropdown .danger {
-  color: #dc2626;
+.row-actions .delete {
+  background: #dc2626;
 }
 
-/* FOOTER */
+/* ===============================
+   FOOTER
+================================ */
 .list-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 12px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #0f172a;
 }
 
-/* PAGINATION */
+/* ===============================
+   PAGINATION
+================================ */
 .pagination button {
-  padding: 6px 10px;
-  margin: 0 4px;
+  padding: 5px 8px;
+  margin: 0 2px;
   border-radius: 6px;
-  border: 1px solid #d1d5db;
-  background: #fff;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
   cursor: pointer;
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===============================
+   MOBILE
+================================ */
+@media (max-width: 768px) {
+  .list-controls {
+    gap: 6px;
+  }
+
+  .row-actions {
+    flex-wrap: wrap;
+  }
+
+  .employee-table {
+    font-size: 11px;
+  }
 }

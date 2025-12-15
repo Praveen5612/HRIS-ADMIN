@@ -1,7 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import "../styles/AnnouncementModule.css";
 
 export default function AnnouncementModule() {
+  /* -----------------------------
+     AUTH
+  ----------------------------- */
+  const user = JSON.parse(localStorage.getItem("auth_user")) || {};
+  const isAdmin = user.role === "ADMIN";
+  const isHR = user.role === "HR";
+
+  /* -----------------------------
+     STATE
+  ----------------------------- */
   const [announcements, setAnnouncements] = useState([
     {
       id: 1,
@@ -26,15 +36,23 @@ export default function AnnouncementModule() {
     message: "",
   });
 
-  const sortedAnnouncements = announcements.sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1;
-    if (!a.pinned && b.pinned) return 1;
-    return new Date(b.createdAt) - new Date(a.createdAt);
-  });
+  /* -----------------------------
+     SORTED LIST
+  ----------------------------- */
+  const sortedAnnouncements = useMemo(() => {
+    return [...announcements].sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+  }, [announcements]);
 
-  // Add new announcement
+  /* -----------------------------
+     ADMIN ACTIONS
+  ----------------------------- */
   const submitAnnouncement = (e) => {
     e.preventDefault();
+    if (!isAdmin) return;
     if (!form.title || !form.message) return;
 
     const newNotice = {
@@ -46,74 +64,90 @@ export default function AnnouncementModule() {
       read: false,
     };
 
-    setAnnouncements([newNotice, ...announcements]);
+    setAnnouncements((prev) => [newNotice, ...prev]);
     setForm({ title: "", message: "" });
 
-    // Simulated push notification
-    alert("📢 Push notification sent to all employees!");
+    alert("📢 Announcement published & push notification sent");
   };
 
-  // Toggle pinned
   const togglePin = (id) => {
+    if (!isAdmin) return;
     setAnnouncements((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, pinned: !n.pinned } : n))
+      prev.map((n) =>
+        n.id === id ? { ...n, pinned: !n.pinned } : n
+      )
     );
   };
 
-  // Toggle Read Status
-  const toggleRead = (id) => {
-    setAnnouncements((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
-    );
-  };
-
-  // Delete
   const deleteNotice = (id) => {
-    if (!window.confirm("Are you sure you want to delete this notice?")) return;
+    if (!isAdmin) return;
+    if (!window.confirm("Delete this announcement?")) return;
     setAnnouncements((prev) => prev.filter((n) => n.id !== id));
   };
 
+  /* -----------------------------
+     READ (ADMIN + HR)
+  ----------------------------- */
+  const toggleRead = (id) => {
+    if (!isAdmin && !isHR) return;
+    setAnnouncements((prev) =>
+      prev.map((n) =>
+        n.id === id ? { ...n, read: !n.read } : n
+      )
+    );
+  };
+
+  /* =============================
+     UI
+  ============================== */
   return (
     <div className="announce-root">
       <h1 className="fade-in">Announcements & Notice Board</h1>
 
-      {/* Add Announcement */}
-      <section className="card slide-up">
-        <h2>Create Announcement</h2>
+      {/* CREATE — ADMIN ONLY */}
+      {isAdmin && (
+        <section className="card slide-up">
+          <h2>Create Announcement</h2>
 
-        <form className="ann-form" onSubmit={submitAnnouncement}>
-          <input
-            placeholder="Title"
-            value={form.title}
-            onChange={(e) =>
-              setForm({ ...form, title: e.target.value })
-            }
-          />
-          <textarea
-            placeholder="Message..."
-            rows="4"
-            value={form.message}
-            onChange={(e) =>
-              setForm({ ...form, message: e.target.value })
-            }
-          ></textarea>
+          <form className="ann-form" onSubmit={submitAnnouncement}>
+            <input
+              placeholder="Title"
+              value={form.title}
+              onChange={(e) =>
+                setForm({ ...form, title: e.target.value })
+              }
+            />
 
-          <button className="btn-primary">Publish</button>
-        </form>
-      </section>
+            <textarea
+              placeholder="Message..."
+              rows="4"
+              value={form.message}
+              onChange={(e) =>
+                setForm({ ...form, message: e.target.value })
+              }
+            />
 
-      {/* Notice List */}
+            <button className="btn-primary">Publish</button>
+          </form>
+        </section>
+      )}
+
+      {/* NOTICE BOARD */}
       <section className="card fade-in">
         <h2>Notice Board</h2>
 
         <div className="notice-list">
           {sortedAnnouncements.map((n) => (
-            <div key={n.id} className={`notice-card ${n.pinned ? "pinned" : ""}`}>
-
+            <div
+              key={n.id}
+              className={`notice-card ${n.pinned ? "pinned" : ""}`}
+            >
               <div className="notice-header">
                 <h3>
                   {n.title}
-                  {n.pinned && <span className="pin-tag">📌 Pinned</span>}
+                  {n.pinned && (
+                    <span className="pin-tag">📌 Pinned</span>
+                  )}
                 </h3>
                 <span className="notice-date">
                   {new Date(n.createdAt).toLocaleString()}
@@ -123,28 +157,36 @@ export default function AnnouncementModule() {
               <p className="notice-msg">{n.message}</p>
 
               <div className="notice-actions">
-                <button
-                  className="btn-sm"
-                  onClick={() => togglePin(n.id)}
-                >
-                  {n.pinned ? "Unpin" : "Pin"}
-                </button>
+                {/* ADMIN */}
+                {isAdmin && (
+                  <button
+                    className="btn-sm"
+                    onClick={() => togglePin(n.id)}
+                  >
+                    {n.pinned ? "Unpin" : "Pin"}
+                  </button>
+                )}
 
-                <button
-                  className="btn-sm"
-                  onClick={() => toggleRead(n.id)}
-                >
-                  {n.read ? "Mark Unread" : "Mark Read"}
-                </button>
+                {/* ADMIN + HR */}
+                {(isAdmin || isHR) && (
+                  <button
+                    className="btn-sm"
+                    onClick={() => toggleRead(n.id)}
+                  >
+                    {n.read ? "Mark Unread" : "Mark Read"}
+                  </button>
+                )}
 
-                <button
-                  className="btn-sm danger"
-                  onClick={() => deleteNotice(n.id)}
-                >
-                  Delete
-                </button>
+                {/* ADMIN */}
+                {isAdmin && (
+                  <button
+                    className="btn-sm danger"
+                    onClick={() => deleteNotice(n.id)}
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
-
             </div>
           ))}
 

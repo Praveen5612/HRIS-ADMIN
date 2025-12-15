@@ -7,7 +7,11 @@ const Navbar = ({ user, onToggleSidebar, onLogout }) => {
 
   if (!user) return null;
 
-  const initials = user.email.slice(0, 2).toUpperCase();
+  // ✅ SAFE INITIALS (BUG FIX)
+  const email = user.email || "";
+  const initials = email
+    ? email.slice(0, 2).toUpperCase()
+    : "U";
 
   /* Close dropdown on outside click */
   useEffect(() => {
@@ -23,7 +27,7 @@ const Navbar = ({ user, onToggleSidebar, onLogout }) => {
           <FaBars />
         </button>
 
-        {/* ✅ COMPANY NAME FROM LOGIN */}
+        {/* COMPANY NAME */}
         <span className="nav-title">
           {user.company} Admin
         </span>
@@ -38,14 +42,14 @@ const Navbar = ({ user, onToggleSidebar, onLogout }) => {
           }}
         >
           <div className="avatar">{initials}</div>
-          <span className="email">{user.email}</span>
+          <span className="email">{user.email || ""}</span>
           <FaChevronDown />
         </div>
 
         {open && (
           <div className="profile-menu">
             <div className="profile-info">
-              <strong>{user.email}</strong>
+              <strong>{user.email || "—"}</strong>
               <small>{user.company}</small>
             </div>
 

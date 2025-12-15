@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import "../styles/EmployeeList.css";
 
 /* =====================
@@ -24,58 +24,57 @@ const EmployeeList = ({
   const [q, setQ] = useState("");
   const [dept, setDept] = useState("All");
   const [role, setRole] = useState("All");
-  const [showInactive, setShowInactive] = useState(false);
+  const [inactiveOnly, setInactiveOnly] = useState(false);
   const [sortBy, setSortBy] = useState("id");
   const [page, setPage] = useState(1);
-  const [openActionId, setOpenActionId] = useState(null);
+  const [activeRow, setActiveRow] = useState(null);
 
+  const wrapperRef = useRef(null);
   const pageSize = 20;
 
   /* =====================
-     DEPARTMENTS (from data)
+     CLOSE ACTIONS ON OUTSIDE CLICK
+  ===================== */
+  useEffect(() => {
+    const close = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setActiveRow(null);
+      }
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  /* =====================
+     FILTER DATA
   ===================== */
   const depts = useMemo(
     () => ["All", ...new Set(employees.map(e => e.department))],
     [employees]
   );
 
-  /* =====================
-     ROLES (dependent)
-  ===================== */
   const roles = useMemo(() => {
     if (dept === "All") return ["All"];
-    return [
-      "All",
-      ...new Set(
-        employees
-          .filter(e => e.department === dept)
-          .map(e => e.role)
-      ),
-    ];
+    return ["All", ...new Set(
+      employees.filter(e => e.department === dept).map(e => e.role)
+    )];
   }, [employees, dept]);
 
-  /* =====================
-     FILTER + SORT
-  ===================== */
   const filtered = useMemo(() => {
-    let list = employees.filter(e => showInactive || e.active);
+    let list = employees;
+
+    if (inactiveOnly) {
+      list = list.filter(e => !e.active);
+    }
 
     if (q) {
       const qq = q.toLowerCase().trim();
-
-      list = list.filter(e => {
-        const normalizedId = e.id.replace("EMP", "").toLowerCase(); // 005
-        const numericId = String(parseInt(normalizedId, 10));       // 5
-
-        return (
-          e.id.toLowerCase().includes(qq) ||   // EMP005
-          normalizedId.includes(qq) ||         // 005
-          numericId === qq ||                  // 5
-          e.name.toLowerCase().includes(qq) ||
-          e.email.toLowerCase().includes(qq) ||
-          e.phone.includes(qq)
-        );
-      });
+      list = list.filter(e =>
+        e.id.toLowerCase().includes(qq) ||
+        e.name.toLowerCase().includes(qq) ||
+        e.email.toLowerCase().includes(qq) ||
+        e.phone.includes(qq)
+      );
     }
 
     if (dept !== "All") list = list.filter(e => e.department === dept);
@@ -83,24 +82,18 @@ const EmployeeList = ({
 
     return [...list].sort((a, b) => {
       if (sortBy === "name") return a.name.localeCompare(b.name);
-      if (sortBy === "joiningDate") return a.joiningDate.localeCompare(b.joiningDate);
       if (sortBy === "salary") return b.salary - a.salary;
-
-      const aid = parseInt(a.id.replace("EMP", ""), 10);
-      const bid = parseInt(b.id.replace("EMP", ""), 10);
-      return aid - bid;
+      return parseInt(a.id.slice(3)) - parseInt(b.id.slice(3));
     });
-  }, [employees, q, dept, role, showInactive, sortBy]);
+  }, [employees, q, dept, role, inactiveOnly, sortBy]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [q, dept, role, showInactive]);
+  useEffect(() => setPage(1), [q, dept, role, inactiveOnly]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const current = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div className="employee-list-wrap">
+    <div className="employee-list-wrap" ref={wrapperRef}>
       {/* FILTER BAR */}
       <div className="list-controls">
         <input
@@ -120,18 +113,32 @@ const EmployeeList = ({
         <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
           <option value="id">Sort: ID</option>
           <option value="name">Sort: Name</option>
-          <option value="joiningDate">Sort: Joining Date</option>
           <option value="salary">Sort: Salary</option>
         </select>
 
-        <label className="toggle">
+        <label className="checkbox">
           <input
             type="checkbox"
-            checked={showInactive}
-            onChange={e => setShowInactive(e.target.checked)}
+            checked={inactiveOnly}
+            onChange={e => setInactiveOnly(e.target.checked)}
           />
-          <span>Show Inactive</span>
+          Inactive Only
         </label>
+
+        <button
+          className="clear-btn"
+          onClick={() => {
+            setQ("");
+            setDept("All");
+            setRole("All");
+            setInactiveOnly(false);
+            setSortBy("id");
+          }}
+        >
+          Clear
+        </button>
+
+        <button className="export-btn">Export</button>
       </div>
 
       {/* TABLE */}
@@ -159,43 +166,15 @@ const EmployeeList = ({
                   {emp.active ? "Active" : "Inactive"}
                 </span>
               </td>
-
-              {/* ACTION MENU */}
-              <td className="actions">
-                <div className="action-menu">
-                  <button
-                    className="action-trigger"
-                    onClick={() =>
-                      setOpenActionId(openActionId === emp.id ? null : emp.id)
-                    }
-                  >
-                    ⋮
-                  </button>
-
-                  {openActionId === emp.id && (
-                    <div className="action-dropdown">
-                      <button onClick={() => { onEdit(emp.id); setOpenActionId(null); }}>
-                        ✏️ Edit
-                      </button>
-
-                      {emp.active ? (
-                        <button onClick={() => { onDeactivate(emp.id); setOpenActionId(null); }}>
-                          🚫 Deactivate
-                        </button>
-                      ) : (
-                        <button onClick={() => { onActivate(emp.id); setOpenActionId(null); }}>
-                          ✅ Activate
-                        </button>
-                      )}
-
-                      <button
-                        className="danger"
-                        onClick={() => { onDelete(emp.id); setOpenActionId(null); }}
-                      >
-                        🗑 Delete
-                      </button>
-                    </div>
+              <td>
+                <div className="row-actions">
+                  <button onClick={() => onEdit(emp.id)} className="edit">Edit</button>
+                  {emp.active ? (
+                    <button onClick={() => onDeactivate(emp.id)} className="deactivate">Deactivate</button>
+                  ) : (
+                    <button onClick={() => onActivate(emp.id)} className="activate">Activate</button>
                   )}
+                  <button onClick={() => onDelete(emp.id)} className="delete">Delete</button>
                 </div>
               </td>
             </tr>
@@ -206,15 +185,9 @@ const EmployeeList = ({
       {/* FOOTER */}
       <div className="list-footer">
         <span>
-          Showing {(page - 1) * pageSize + 1} –
-          {Math.min(page * pageSize, filtered.length)} of {filtered.length}
+          Showing {(page - 1) * pageSize + 1} – {Math.min(page * pageSize, filtered.length)} of {filtered.length}
         </span>
-
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          onPage={p => setPage(p)}
-        />
+        <Pagination page={page} totalPages={totalPages} onPage={setPage} />
       </div>
     </div>
   );

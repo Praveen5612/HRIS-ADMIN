@@ -14,19 +14,10 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 /* =============================
    CONSTANTS
 ============================= */
-const DEPARTMENTS = [
-  "HR",
-  "IT",
-  "Finance",
-  "Sales",
-  "Marketing",
-  "Operations",
-];
-
 const PAGE_SIZE = 20;
 
 /* =============================
-   DATE HELPERS
+   HELPERS
 ============================= */
 const randomStatus = () => {
   const r = Math.random();
@@ -55,8 +46,14 @@ const getDateRange = (from, to) => {
    COMPONENT
 ============================= */
 export default function Attendance() {
-  /* Entry */
-  const [department, setDepartment] = useState(null);
+  const user = JSON.parse(localStorage.getItem("auth_user"));
+
+  if (!user || !user.role) {
+    return <h3 style={{ padding: 20 }}>Unauthorized</h3>;
+  }
+
+  const isAdmin = user.role === "ADMIN";
+  const department = isAdmin ? null : user.department;
 
   /* Filters */
   const [search, setSearch] = useState("");
@@ -70,8 +67,10 @@ export default function Attendance() {
 
   /* Employees */
   const employees = useMemo(() => {
-    if (!department) return [];
-    return makeEmployees(400).filter(e => e.department === department);
+    const all = makeEmployees(400);
+    return department
+      ? all.filter(e => e.department === department)
+      : all;
   }, [department]);
 
   /* Dates */
@@ -84,8 +83,6 @@ export default function Attendance() {
   const [attendance, setAttendance] = useState({});
 
   useEffect(() => {
-    if (!department) return;
-
     const data = {};
     employees.forEach(e => {
       data[e.id] = {};
@@ -100,10 +97,9 @@ export default function Attendance() {
         };
       });
     });
-
     setAttendance(data);
     setPage(1);
-  }, [employees, dates, department]);
+  }, [employees, dates]);
 
   /* Filtered Employees */
   const filteredEmployees = useMemo(() => {
@@ -156,10 +152,41 @@ export default function Attendance() {
             ? { status: "P", source: "MANUAL_BY_HR" }
             : {
                 ...prev[empId][day],
-                request: { ...prev[empId][day].request, state: "REJECTED" },
+                request: {
+                  ...prev[empId][day].request,
+                  state: "REJECTED",
+                },
               },
       },
     }));
+  };
+
+  /* Export CSV */
+  const exportCSV = () => {
+    if (!paginatedEmployees.length) return;
+
+    const rows = paginatedEmployees.map(e => {
+      const row = {
+        EmpID: e.id,
+        Name: e.name,
+        Designation: e.role,
+      };
+      dates.forEach(d => {
+        row[d] = attendance[e.id]?.[d]?.status || "";
+      });
+      return row;
+    });
+
+    const csv = [
+      Object.keys(rows[0]).join(","),
+      ...rows.map(r => Object.values(r).join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `attendance_${fromMonth}_to_${toMonth}.csv`;
+    a.click();
   };
 
   /* Pie Chart */
@@ -175,65 +202,20 @@ export default function Attendance() {
     );
     return {
       labels: ["Present", "Absent", "Leave", "Missing"],
-      datasets: [
-        {
-          data: [p, a, l, m],
-          backgroundColor: ["#22c55e", "#ef4444", "#f59e0b", "#8b5cf6"],
-        },
-      ],
+      datasets: [{
+        data: [p, a, l, m],
+        backgroundColor: ["#22c55e", "#ef4444", "#f59e0b", "#8b5cf6"],
+      }],
     };
   }, [attendance, filteredEmployees]);
-
-  /* Export (DATE-BASED COLUMNS) */
-  const exportCSV = () => {
-    const rows = paginatedEmployees.map(e => {
-      const row = {
-        EmpID: e.id,
-        Name: e.name,
-        Designation: e.role,
-      };
-      dates.forEach(d => {
-        row[d] = attendance[e.id]?.[d]?.status || "";
-      });
-      return row;
-    });
-
-    const csv = [
-      Object.keys(rows[0]).join(","),
-      ...rows.map(r => Object.values(r).join(","))
-    ].join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `${department}_attendance_${fromMonth}_to_${toMonth}.csv`;
-    a.click();
-  };
 
   /* =============================
      RENDER
   ============================= */
-
-  if (!department) {
-    return (
-      <div className="attendance-page">
-        <h2>Select Department</h2>
-        <div className="dept-grid">
-          {DEPARTMENTS.map(d => (
-            <button key={d} className="dept-btn" onClick={() => setDepartment(d)}>
-              {d}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="attendance-page">
-      <h2>{department} Attendance</h2>
+      <h2>Attendance</h2>
 
-      {/* Charts + Requests */}
       <div className="charts">
         <div className="card">
           <Pie data={pieData} />
@@ -264,7 +246,6 @@ export default function Attendance() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="controls">
         <input placeholder="Search ID / Name" onChange={e => setSearch(e.target.value)} />
 
@@ -289,16 +270,15 @@ export default function Attendance() {
         <button onClick={exportCSV}>Export</button>
       </div>
 
-      {/* Table */}
       <div className="table-box">
-        <table>
+        <table className="attendance-table">
           <thead>
             <tr>
-              <th>Emp ID</th>
-              <th>Name</th>
-              <th>Designation</th>
+              <th className="col-id">Emp ID</th>
+              <th className="col-name">Name</th>
+              <th className="col-role">Designation</th>
               {dates.map(d => (
-                <th key={d}>{d}</th>
+                <th key={d} className="col-day">{d}</th>
               ))}
             </tr>
           </thead>
@@ -309,8 +289,10 @@ export default function Attendance() {
                 <td>{e.name}</td>
                 <td>{e.role}</td>
                 {dates.map(d => (
-                  <td className={`status ${attendance[e.id]?.[d]?.status}`}>
-                    {attendance[e.id]?.[d]?.status}
+                  <td key={d}>
+                    <span className={`status ${attendance[e.id]?.[d]?.status}`}>
+                      {attendance[e.id]?.[d]?.status}
+                    </span>
                   </td>
                 ))}
               </tr>
@@ -319,15 +301,10 @@ export default function Attendance() {
         </table>
       </div>
 
-      {/* Pagination */}
       <div className="pagination">
-        <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>
-          Prev
-        </button>
+        <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Prev</button>
         <span>Page {page} of {totalPages}</span>
-        <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
-          Next
-        </button>
+        <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Next</button>
       </div>
     </div>
   );

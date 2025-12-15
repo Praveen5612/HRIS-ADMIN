@@ -3,8 +3,9 @@ import { makeEmployees } from "../utils/mockData";
 import "../styles/DepartmentDesignation.css";
 
 /**
- * Usage:
- * <DepartmentDesignation user={user} />
+ * Rules:
+ * - ADMIN → can add departments & designations
+ * - HR → read-only (view only)
  */
 
 export default function DepartmentDesignation({ user }) {
@@ -49,18 +50,23 @@ export default function DepartmentDesignation({ user }) {
   ];
 
   /* ===============================
-     ACTIONS
+     ACTIONS (ADMIN ONLY)
   ================================ */
   const addDepartment = () => {
+    if (!isAdmin) return;
+
     const name = newDept.trim();
     if (!name || departments.includes(name)) return;
+
     setExtraDepartments((p) => [...p, name]);
     setNewDept("");
   };
 
   const addDesignation = () => {
+    if (!isAdmin || !selectedDept) return;
+
     const name = newDesignation.trim();
-    if (!name || !selectedDept) return;
+    if (!name) return;
 
     setExtraDesignations((p) => ({
       ...p,
@@ -69,6 +75,7 @@ export default function DepartmentDesignation({ user }) {
         name,
       ],
     }));
+
     setNewDesignation("");
   };
 
@@ -100,6 +107,7 @@ export default function DepartmentDesignation({ user }) {
     <div className="dd-page">
       <h2>Departments & Designations</h2>
 
+      {/* ADD DEPARTMENT — ADMIN ONLY */}
       {isAdmin && (
         <div className="dd-actions">
           <input
@@ -107,7 +115,9 @@ export default function DepartmentDesignation({ user }) {
             value={newDept}
             onChange={(e) => setNewDept(e.target.value)}
           />
-          <button onClick={addDepartment}>Add Department</button>
+          <button onClick={addDepartment}>
+            Add Department
+          </button>
         </div>
       )}
 
@@ -145,7 +155,6 @@ export default function DepartmentDesignation({ user }) {
 
           {selectedDept && (
             <>
-              {/* Header row */}
               <div className="dept-header">
                 <h3>{selectedDept}</h3>
                 <div className="emp-count">
@@ -156,7 +165,7 @@ export default function DepartmentDesignation({ user }) {
                 </div>
               </div>
 
-              {/* Add designation */}
+              {/* ADD DESIGNATION — ADMIN ONLY */}
               {isAdmin && (
                 <div className="dd-actions inline">
                   <input
@@ -172,7 +181,7 @@ export default function DepartmentDesignation({ user }) {
                 </div>
               )}
 
-              {/* Table */}
+              {/* DESIGNATION TABLE */}
               <div className="table-wrapper">
                 <table className="table">
                   <thead>

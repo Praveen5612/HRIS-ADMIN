@@ -1,7 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useMemo } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
+/* AUTH */
 import Login from "./pages/Login";
+import RoleGate from "./pages/RoleGate";
+import CodeVerify from "./pages/CodeVerify";
+
+/* ADMIN PAGES */
 import Dashboard from "./pages/Dashboard";
 import EmployeePanel from "./pages/EmployeePanel";
 import Attendance from "./pages/Attendance";
@@ -13,60 +18,47 @@ import RecruitmentModule from "./pages/RecruitmentModule";
 import HolidaysModule from "./pages/HolidaysModule";
 import SettingsModule from "./pages/SettingsModule";
 import DepartmentDesignation from "./pages/DepartmentDesignation";
-import Companies from "./pages/Companies"
+import Companies from "./pages/Companies";
+import Accounts from "./pages/Accounts";
+import Softwarereports from "./pages/Softwarereports";
 
-
+/* LAYOUT */
 import Sidebar from "./pages/Sidebar";
 import Navbar from "./pages/Navbar";
 import "./styles/Layout.css";
 
 /* ===============================
-   ADMIN LAYOUT (PROTECTED)
+   ADMIN LAYOUT (STRICT & SAFE)
 ================================ */
-const AdminLayout = ({ user, setUser, authLoading }) => {
+const AdminLayout = ({ user, setUser }) => {
   const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
-  // ⏳ WAIT until auth is checked
-  if (authLoading) return null;
+  // 🔐 Hard guard
+  if (!user || !user.role || !user.verified) {
+    return <Navigate to="/login" replace />;
+  }
 
-  // 🔒 Redirect only if user truly not logged in
-  if (!user) return <Navigate to="/login" replace />;
-
-  const toggleSidebar = () => {
-    if (window.innerWidth < 768) {
-      setMobileOpen(true);
-    } else {
-      setCollapsed(!collapsed);
-    }
+  const logout = () => {
+    localStorage.removeItem("auth_user");
+    setUser(null);
   };
 
   return (
     <>
       <Navbar
         user={user}
-        onToggleSidebar={toggleSidebar}
-        onLogout={() => setUser(null)}
+        onToggleSidebar={() => setCollapsed(prev => !prev)}
+        onLogout={logout}
       />
 
-      {mobileOpen && (
-        <div
-          className="sidebar-overlay"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      <Sidebar collapsed={collapsed} />
 
-      <Sidebar
-        collapsed={collapsed}
-        mobileOpen={mobileOpen}
-        onCloseMobile={() => setMobileOpen(false)}
-      />
-
-      <main className={`app-content ${collapsed ? "collapsed" : ""}`}>
+      {/* DO NOT add extra top padding here – sidebar/navbar handle layout */}
+      <main className="app-content">
         <Routes>
           <Route path="dashboard" element={<Dashboard user={user} />} />
           <Route path="employees" element={<EmployeePanel />} />
-          <Route path="attendence" element={<Attendance />} />
+          <Route path="attendance" element={<Attendance />} />
           <Route path="leavemanagement" element={<LeaveManagement />} />
           <Route path="payroll" element={<PayrollManagement />} />
           <Route path="asset" element={<AssetManagement />} />
@@ -74,53 +66,56 @@ const AdminLayout = ({ user, setUser, authLoading }) => {
           <Route path="recruit" element={<RecruitmentModule />} />
           <Route path="holidays" element={<HolidaysModule />} />
           <Route path="settings" element={<SettingsModule />} />
-           <Route path="companies" element={<Companies user={user} />} />
-          <Route
-            path="departments"
-            element={<DepartmentDesignation user={user} />}
-          />
+          <Route path="companies" element={<Companies user={user} />} />
+          <Route path="departments" element={<DepartmentDesignation user={user} />} />
+
+          {/* ✅ NEW ROUTES YOU ASKED FOR */}
+          <Route path="accounting" element={<Accounts />} />
+          <Route path="softwarereports" element={<Softwarereports />} />
+
+          {/* Admin fallback */}
+          <Route path="*" element={<Navigate to="dashboard" replace />} />
         </Routes>
       </main>
     </>
   );
 };
 
-const App = () => {
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
-
-  // ✅ Restore login ONCE on app load
-  useEffect(() => {
+/* ===============================
+   ROOT APP
+================================ */
+export default function App() {
+  // ✅ SAFE INIT (no useEffect, no flicker)
+  const initialUser = useMemo(() => {
     const saved = localStorage.getItem("auth_user");
-    if (saved) {
-      setUser(JSON.parse(saved));
-    }
-    setAuthLoading(false); // ⬅️ important
+    return saved ? JSON.parse(saved) : null;
   }, []);
+
+  const [user, setUser] = useState(initialUser);
 
   return (
     <BrowserRouter>
       <Routes>
         <Route
           path="/login"
-          element={<Login onLogin={setUser} />}
-        />
-
-        <Route
-          path="/admin/*"
           element={
-            <AdminLayout
-              user={user}
-              setUser={setUser}
-              authLoading={authLoading}
-            />
+            user && user.verified
+              ? <Navigate to="/admin/dashboard" replace />
+              : <Login onLogin={setUser} />
           }
         />
 
+        <Route path="/role" element={<RoleGate />} />
+        <Route path="/verify" element={<CodeVerify onVerify={setUser} />} />
+
+        <Route
+          path="/admin/*"
+          element={<AdminLayout user={user} setUser={setUser} />}
+        />
+
+        {/* Global fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
-};
-
-export default App;
+}

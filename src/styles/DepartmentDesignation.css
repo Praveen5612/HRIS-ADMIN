@@ -5,6 +5,8 @@
   padding: 20px 24px;
   font-family: "Inter", system-ui, sans-serif;
   color: #1f2937;
+  background: #f8fafc;
+  min-height: 100vh;
 }
 
 .dd-page h2 {
@@ -33,6 +35,12 @@
   border: 1px solid #d1d5db;
   font-size: 14px;
   min-width: 220px;
+  background: #ffffff;
+}
+
+.dd-actions input:focus {
+  outline: none;
+  border-color: #2563eb;
 }
 
 .dd-actions button {
@@ -44,6 +52,10 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.dd-actions button:hover {
+  background: #1d4ed8;
 }
 
 /* ===============================
@@ -62,7 +74,7 @@
   background: #ffffff;
   border-radius: 18px;
   padding: 20px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -72,6 +84,7 @@
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 14px;
+  color: #020617;
 }
 
 /* ===============================
@@ -91,6 +104,7 @@
   border-radius: 14px;
   cursor: pointer;
   font-size: 14px;
+  transition: background 0.2s ease;
 }
 
 .dept-list li:hover {
@@ -115,6 +129,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 18px;
+  gap: 10px;
 }
 
 .emp-count {
@@ -133,6 +148,7 @@
   flex: 1;
   overflow-y: auto;
   border-radius: 14px;
+  border: 1px solid #e5e7eb;
 }
 
 .table {
@@ -146,14 +162,14 @@
 }
 
 .table th {
-  padding: 16px;
+  padding: 14px 16px;
   color: #ffffff;
   font-weight: 600;
   text-align: left;
 }
 
 .table td {
-  padding: 16px;
+  padding: 14px 16px;
   border-bottom: 1px solid #e5e7eb;
   color: #111827;
 }

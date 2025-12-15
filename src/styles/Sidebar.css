@@ -1,50 +1,66 @@
+/* =========================================================
+   SIDEBAR — FIXED & INDEPENDENT SCROLL
+========================================================= */
 .sidebar {
   position: fixed;
-  top: 0;
+  top: 64px; /* navbar height */
   left: 0;
+
   width: 240px;
-  height: 100vh;
-  padding-top: 64px;
+  height: calc(100vh - 64px);
 
   background: #ffffff;
   border-right: 1px solid #e5e7eb;
 
-  transition:
-    width 0.28s ease,
-    box-shadow 0.28s ease;
+  overflow-y: auto;        /* ✅ ONLY SIDEBAR SCROLLS */
+  overflow-x: hidden;
+
+  transition: width 0.28s ease;
+  z-index: 100;
 }
 
+/* Collapsed */
 .sidebar.collapsed {
   width: 72px;
 }
 
-/* HEADER */
+/* =========================================================
+   SIDEBAR HEADER (STICKY)
+========================================================= */
 .sidebar-header {
-  position: absolute;
+  position: sticky;
   top: 0;
-  height: 64px;
-  width: 100%;
+
+  height: 56px;
+  background: #ffffff;
 
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
 
+  font-weight: 600;
   border-bottom: 1px solid #e5e7eb;
+  z-index: 2;
 }
 
-/* MENU */
+/* =========================================================
+   MENU CONTAINER
+========================================================= */
 .sidebar-menu {
   padding: 12px;
 }
 
-/* MAIN ITEMS */
+/* =========================================================
+   MAIN MENU ITEMS
+========================================================= */
 .menu-item {
   display: flex;
   align-items: center;
   gap: 12px;
+
   padding: 10px 12px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+
   border-radius: 8px;
   color: #334155;
   text-decoration: none;
@@ -53,7 +69,7 @@
   transition:
     background 0.2s ease,
     color 0.2s ease,
-    transform 0.18s ease;
+    transform 0.15s ease;
 }
 
 .menu-item:hover {
@@ -66,12 +82,13 @@
   color: #ffffff;
 }
 
-/* SUB MENU */
+/* =========================================================
+   SUB MENU
+========================================================= */
 .submenu {
-  margin-left: 12px;
+  margin-left: 14px;
   margin-top: 6px;
-
-  animation: expandSubmenu 0.25s ease;
+  animation: expandSubmenu 0.2s ease;
 }
 
 @keyframes expandSubmenu {
@@ -86,17 +103,19 @@
 }
 
 .submenu-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
   padding: 8px 12px;
   margin-bottom: 4px;
+
   border-radius: 8px;
   font-size: 14px;
   color: #475569;
   text-decoration: none;
 
-  transition:
-    background 0.2s ease,
-    transform 0.15s ease;
+  transition: background 0.2s ease, transform 0.15s ease;
 }
 
 .submenu-item:hover {
@@ -104,34 +123,36 @@
   transform: translateX(3px);
 }
 
-.sub-submenu {
-  margin-left: 12px;
-}
-
-.submenu-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .submenu-icon {
   font-size: 14px;
-  opacity: 0.8;
+  opacity: 0.75;
 }
 
-/* ===============================
-   MOBILE SIDEBAR (REQUIRED)
-================================ */
+/* =========================================================
+   MAIN CONTENT OFFSET
+========================================================= */
+.app-content {
+  margin-left: 240px;
+  padding-top: 64px;
+  min-height: 100vh;
+}
+
+.sidebar.collapsed ~ .app-content {
+  margin-left: 72px;
+}
+
+/* =========================================================
+   MOBILE SIDEBAR
+========================================================= */
 @media (max-width: 768px) {
   .sidebar {
-    position: fixed;
-    top: 64px; /* navbar height */
+    top: 64px;
     left: -260px;
     width: 260px;
     height: calc(100vh - 64px);
-    background: #0f172a; /* or your sidebar bg */
-    z-index: 200;
+    background: #ffffff;
     transition: left 0.3s ease;
+    z-index: 300;
   }
 
   .sidebar.mobile-open {
@@ -143,12 +164,12 @@
   }
 }
 
-/* ===============================
-   SIDEBAR OVERLAY
-================================ */
+/* =========================================================
+   MOBILE OVERLAY
+========================================================= */
 .sidebar-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  z-index: 150;
+  z-index: 250;
 }
