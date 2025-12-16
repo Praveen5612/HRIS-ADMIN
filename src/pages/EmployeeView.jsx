@@ -1,10 +1,10 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import "../styles/EmployeeView.css";
 import { makeEmployees } from "../utils/mockData.js";
 
-/* ⚠️ TEMP: using dummy source (no backend yet) */
+/* TEMP dummy source */
 const employees = makeEmployees(1000);
 
 /* =========================
@@ -32,6 +32,8 @@ const EmployeeView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const [preview, setPreview] = useState(null);
+
   const employee = useMemo(
     () => employees.find(e => e.id === id),
     [id]
@@ -44,14 +46,12 @@ const EmployeeView = () => {
   const { biodata, reports } = employee;
 
   /* =========================
-     PDF HELPERS
+     PDF HELPERS (UNCHANGED)
   ========================= */
-
   const downloadBiodata = () => {
     const doc = new jsPDF();
 
     doc.text("Employee Bio Data", 14, 16);
-
     doc.text(`Name: ${employee.name}`, 14, 30);
     doc.text(`Employee ID: ${employee.id}`, 14, 38);
     doc.text(`Gender: ${biodata.gender}`, 14, 46);
@@ -62,12 +62,9 @@ const EmployeeView = () => {
     doc.text(`Department: ${employee.department}`, 14, 86);
     doc.text(`Role: ${employee.role}`, 14, 94);
 
-    /* Photo */
     try {
       doc.addImage(employee.avatar, "PNG", 150, 30, 30, 30);
-    } catch {
-      /* ignore image errors in dummy env */
-    }
+    } catch {}
 
     doc.save(`${employee.id}_Biodata.pdf`);
   };
@@ -116,13 +113,11 @@ const EmployeeView = () => {
     return downloadEmptyForm(report.title);
   };
 
+  /* ✅ FIXED: REAL PREVIEW */
   const handleView = (report) => {
-    alert(`Preview not enabled yet for: ${report.title}`);
+    setPreview(report);
   };
 
-  /* =========================
-     UI
-  ========================= */
   return (
     <div className="employee-view">
       {/* HEADER */}
@@ -176,6 +171,26 @@ const EmployeeView = () => {
       <Section title="PF Reports" items={reports.pf} onView={handleView} onDownload={handleDownload} />
       <Section title="ESI Reports" items={reports.esi} onView={handleView} onDownload={handleDownload} />
       <Section title="Factory Act Reports" items={reports.factoryAct} onView={handleView} onDownload={handleDownload} />
+
+      {/* ✅ MODAL PREVIEW */}
+      {preview && (
+        <div className="modal-backdrop" onClick={() => setPreview(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h3>{preview.title}</h3>
+            <p>This is a preview of <b>{preview.title}</b>.</p>
+            <p>Actual document will be available once backend is connected.</p>
+
+            <div className="modal-actions">
+              <button onClick={() => handleDownload(preview)}>
+                Download
+              </button>
+              <button onClick={() => setPreview(null)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

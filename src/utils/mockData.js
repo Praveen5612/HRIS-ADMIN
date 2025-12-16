@@ -33,90 +33,107 @@ const departmentRoles = {
 };
 
 /* -----------------------------------------
-   HELPERS
+   HELPERS (PURE)
 ----------------------------------------- */
-const rand = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
-const pick = arr => arr[Math.floor(Math.random()*arr.length)];
-const pad = n => String(n).padStart(3,"0");
+const rand = (min, max) =>
+  Math.floor(Math.random() * (max - min + 1)) + min;
+
+const pick = arr => arr[rand(0, arr.length - 1)];
+
+const pad = n => String(n).padStart(3, "0");
 
 /* Alphabet avatar (no static images) */
 const avatar = name =>
-  `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(name)}&backgroundColor=2563eb&textColor=ffffff`;
+  `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(
+    name
+  )}&backgroundColor=2563eb&textColor=ffffff`;
 
 const phone = () =>
   pick(["98","99","97","96","95"]) +
-  Array.from({length:8},()=>rand(0,9)).join("");
+  Array.from({ length: 8 }, () => rand(0, 9)).join("");
 
 const pan = name =>
-  name.replace(/[^A-Za-z]/g,"")
-      .toUpperCase()
-      .slice(0,3)
-      .padEnd(3,"X") +
-  String.fromCharCode(65+rand(0,25)) +
-  String.fromCharCode(65+rand(0,25)) +
-  rand(1000,9999) +
-  String.fromCharCode(65+rand(0,25));
+  name
+    .replace(/[^A-Za-z]/g, "")
+    .toUpperCase()
+    .slice(0, 3)
+    .padEnd(3, "X") +
+  String.fromCharCode(65 + rand(0, 25)) +
+  String.fromCharCode(65 + rand(0, 25)) +
+  rand(1000, 9999) +
+  String.fromCharCode(65 + rand(0, 25));
 
 const aadhaar = () =>
   `${rand(1000,9999)} ${rand(1000,9999)} ${rand(1000,9999)}`;
 
-const date = (y1,y2)=>
-  `${rand(y1,y2)}-${String(rand(1,12)).padStart(2,"0")}-${String(rand(1,28)).padStart(2,"0")}`;
+const date = (from, to) =>
+  `${rand(from, to)}-${String(rand(1, 12)).padStart(2, "0")}-${String(
+    rand(1, 28)
+  ).padStart(2, "0")}`;
 
-const salary = (d,r)=>{
-  const base={
-    HR:35000, IT:55000, Finance:45000,
-    Sales:40000, Marketing:38000, Operations:36000
+const salary = (dept, role) => {
+  const base = {
+    HR: 35000,
+    IT: 55000,
+    Finance: 45000,
+    Sales: 40000,
+    Marketing: 38000,
+    Operations: 36000
   };
-  let m=1;
-  if(/Senior/.test(r)) m=1.4;
-  if(/Lead|Manager/.test(r)) m=1.8;
-  if(/Head|Controller/.test(r)) m=2.3;
-  return Math.round(base[d]*m + rand(0,15000));
+
+  let multiplier = 1;
+  if (/Senior/.test(role)) multiplier = 1.4;
+  if (/Lead|Manager/.test(role)) multiplier = 1.8;
+  if (/Head|Controller/.test(role)) multiplier = 2.3;
+
+  return Math.round(base[dept] * multiplier + rand(0, 15000));
 };
 
-const report = (title, freq="On Demand") => ({
+/* -----------------------------------------
+   REPORT FACTORY
+----------------------------------------- */
+const report = (title, frequency = "On Demand") => ({
   title,
   format: "PDF",
-  frequency: freq,
-  status: "Available"
+  frequency,
+  approvalStatus: "PENDING", // PENDING | APPROVED | REJECTED
+  submittedBy: "EMPLOYEE"    // future employee portal
 });
 
 /* =========================================
    MAIN EXPORT
 ========================================= */
-export function makeEmployees(count=1000) {
-  const list = [];
+export function makeEmployees(count = 1000) {
+  const employees = [];
 
-  for(let i=1;i<=count;i++){
-    const f = pick(firstNames);
-    const l = pick(lastNames);
-    const name = `${f} ${l}`;
-    const dept = pick(departments);
-    const role = pick(departmentRoles[dept]);
-    const gender = Math.random() > 0.5 ? "Male" : "Female";
+  for (let i = 1; i <= count; i++) {
+    const first = pick(firstNames);
+    const last = pick(lastNames);
+    const name = `${first} ${last}`;
+    const department = pick(departments);
+    const role = pick(departmentRoles[department]);
 
-    list.push({
+    employees.push({
       id: `EMP${pad(i)}`,
       name,
-      avatar: avatar(name),        // ✅ Alphabet avatar
-      email: `${f.toLowerCase()}.${l.toLowerCase()}${i}@company.com`,
+      avatar: avatar(name),
+      email: `${first.toLowerCase()}.${last.toLowerCase()}${i}@company.com`,
       phone: phone(),
       pan: pan(name),
       aadhaar: aadhaar(),
-      department: dept,
+      department,
       role,
-      joiningDate: date(2016,2024),
-      salary: salary(dept,role),
+      joiningDate: date(2016, 2024),
+      salary: salary(department, role),
       active: Math.random() > 0.05,
 
       biodata: {
-        gender,
-        dob: date(1978,2001),
+        gender: Math.random() > 0.5 ? "Male" : "Female",
+        dob: date(1978, 2001),
         bloodGroup: pick(["A+","B+","O+","AB+"]),
         maritalStatus: pick(["Single","Married"]),
-        address: "Hyderabad, Telangana",
-        qualification: pick(["B.Tech","MBA","MCA","B.Com"])
+        qualification: pick(["B.Tech","MBA","MCA","B.Com"]),
+        address: "Hyderabad, Telangana"
       },
 
       reports: {
@@ -129,7 +146,7 @@ export function makeEmployees(count=1000) {
           report("Form 16")
         ],
         attendance: [
-          report("Attendance Register","Monthly"),
+          report("Attendance Register", "Monthly"),
           report("Late Coming Report"),
           report("Absent Report"),
           report("Over Time Report"),
@@ -141,7 +158,7 @@ export function makeEmployees(count=1000) {
           report("Form B")
         ],
         salary: [
-          report("Salary Register","Monthly"),
+          report("Salary Register", "Monthly"),
           report("Salary Summary"),
           report("OT Sheet"),
           report("F & F Summary")
@@ -164,5 +181,5 @@ export function makeEmployees(count=1000) {
     });
   }
 
-  return list;
+  return employees;
 }
