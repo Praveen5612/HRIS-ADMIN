@@ -2,6 +2,14 @@ import React, { useEffect, useState } from "react";
 import "../styles/SuperAdmin.css";
 import { API_BASE } from "../utils/apiBase";
 
+/* =============================
+   AUTH HEADER HELPER
+============================= */
+const authHeader = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
+
 export default function SuperAdmin() {
   const [step, setStep] = useState("LOGIN");
   const [loading, setLoading] = useState(false);
@@ -42,7 +50,6 @@ export default function SuperAdmin() {
       const res = await fetch(`${API_BASE}/api/super-admin/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // 🔥 REQUIRED
         body: JSON.stringify(login),
       });
 
@@ -52,6 +59,9 @@ export default function SuperAdmin() {
         alert(data.message || "Login failed");
         return;
       }
+
+      // 🔐 STORE TOKEN
+      localStorage.setItem("token", data.token);
 
       setStep("DASHBOARD");
     } catch {
@@ -66,12 +76,15 @@ export default function SuperAdmin() {
   ============================= */
   const loadCompanies = async () => {
     const res = await fetch(`${API_BASE}/api/companies`, {
-      credentials: "include", // 🔥 REQUIRED
+      headers: authHeader(),
     });
 
     if (res.ok) {
       const data = await res.json();
       setCompanies(data);
+    } else {
+      alert("Unauthorized – please login again");
+      logout();
     }
   };
 
@@ -83,8 +96,7 @@ export default function SuperAdmin() {
 
     const res = await fetch(`${API_BASE}/api/companies`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // 🔥 REQUIRED
+      headers: authHeader(),
       body: JSON.stringify(newCompany),
     });
 
@@ -95,7 +107,7 @@ export default function SuperAdmin() {
       return;
     }
 
-    setCompanies([...companies, data.company]);
+    setCompanies((prev) => [...prev, data.company]);
     setNewCompany({ name: "", email: "" });
   };
 
@@ -107,8 +119,7 @@ export default function SuperAdmin() {
 
     const res = await fetch(`${API_BASE}/api/company-admins`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // 🔥 REQUIRED
+      headers: authHeader(),
       body: JSON.stringify(newAdmin),
     });
 
@@ -124,19 +135,15 @@ export default function SuperAdmin() {
   };
 
   /* =============================
-     LOGOUT (REAL)
+     LOGOUT
   ============================= */
-  const logout = async () => {
-    await fetch(`${API_BASE}/api/super-admin/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
-
+  const logout = () => {
+    localStorage.removeItem("token");
     setStep("LOGIN");
   };
 
   /* =============================
-     LOAD ON DASHBOARD
+     LOAD DASHBOARD
   ============================= */
   useEffect(() => {
     if (step === "DASHBOARD") {
@@ -156,23 +163,31 @@ export default function SuperAdmin() {
           <input
             placeholder="Email"
             value={login.email}
-            onChange={(e) => setLogin({ ...login, email: e.target.value })}
+            onChange={(e) =>
+              setLogin({ ...login, email: e.target.value })
+            }
           />
 
           <input
             type="password"
             placeholder="Password"
             value={login.password}
-            onChange={(e) => setLogin({ ...login, password: e.target.value })}
+            onChange={(e) =>
+              setLogin({ ...login, password: e.target.value })
+            }
           />
 
           <input
             placeholder="OTP"
             value={login.otp}
-            onChange={(e) => setLogin({ ...login, otp: e.target.value })}
+            onChange={(e) =>
+              setLogin({ ...login, otp: e.target.value })
+            }
           />
 
-          <button type="submit">{loading ? "Checking..." : "Login"}</button>
+          <button type="submit">
+            {loading ? "Checking..." : "Login"}
+          </button>
         </form>
       </div>
     );
