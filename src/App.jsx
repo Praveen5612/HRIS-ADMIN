@@ -22,6 +22,8 @@ import Companies from "./pages/Companies";
 import Accounts from "./pages/Accounts";
 import Softwarereports from "./pages/Softwarereports";
 import EmployeeView from "./pages/EmployeeView";
+import SuperAdmin from "./pages/SuperAdmin";
+import AddHR from "./pages/AddHR";
 
 /* LAYOUT */
 import Sidebar from "./pages/Sidebar";
@@ -29,13 +31,13 @@ import Navbar from "./pages/Navbar";
 import "./styles/Layout.css";
 
 /* ===============================
-   ADMIN LAYOUT (STRICT & SAFE)
+   ADMIN LAYOUT
 ================================ */
 const AdminLayout = ({ user, setUser }) => {
   const [collapsed, setCollapsed] = useState(false);
 
-  // 🔐 Hard guard
-  if (!user || !user.role || !user.verified) {
+  // 🔐 Strict guard
+  if (!user || !user.verified || !user.role) {
     return <Navigate to="/login" replace />;
   }
 
@@ -54,7 +56,6 @@ const AdminLayout = ({ user, setUser }) => {
 
       <Sidebar collapsed={collapsed} />
 
-      {/* DO NOT add extra top padding here – sidebar/navbar handle layout */}
       <main className="app-content">
         <Routes>
           <Route path="dashboard" element={<Dashboard user={user} />} />
@@ -69,12 +70,11 @@ const AdminLayout = ({ user, setUser }) => {
           <Route path="settings" element={<SettingsModule />} />
           <Route path="companies" element={<Companies user={user} />} />
           <Route path="departments" element={<DepartmentDesignation user={user} />} />
-          <Route path="/employee/:id" element={<EmployeeView />} />
-
-
-          {/* ✅ NEW ROUTES YOU ASKED FOR */}
+          <Route path="employee/:id" element={<EmployeeView />} />
           <Route path="accounting" element={<Accounts />} />
           <Route path="softwarereports" element={<Softwarereports />} />
+          <Route path="hr-management" element={<AddHR />} />
+
 
           {/* Admin fallback */}
           <Route path="*" element={<Navigate to="dashboard" replace />} />
@@ -88,7 +88,6 @@ const AdminLayout = ({ user, setUser }) => {
    ROOT APP
 ================================ */
 export default function App() {
-  // ✅ SAFE INIT (no useEffect, no flicker)
   const initialUser = useMemo(() => {
     const saved = localStorage.getItem("auth_user");
     return saved ? JSON.parse(saved) : null;
@@ -99,24 +98,40 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+
+        {/* LOGIN */}
         <Route
           path="/login"
           element={
-            user && user.verified
+            user?.role === "SUPER_ADMIN"
+              ? <Navigate to="/super-admin" replace />
+              : user?.verified && user?.role
               ? <Navigate to="/admin/dashboard" replace />
               : <Login onLogin={setUser} />
           }
         />
 
+        {/* SUPER ADMIN */}
+        <Route
+          path="/super-admin"
+          element={
+            user?.role === "SUPER_ADMIN" && user?.verified
+              ? <SuperAdmin />
+              : <Navigate to="/login" replace />
+          }
+        />
+
+        {/* ROLE / OTP */}
         <Route path="/role" element={<RoleGate />} />
         <Route path="/verify" element={<CodeVerify onVerify={setUser} />} />
 
+        {/* ADMIN */}
         <Route
           path="/admin/*"
           element={<AdminLayout user={user} setUser={setUser} />}
         />
 
-        {/* Global fallback */}
+        {/* GLOBAL FALLBACK */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

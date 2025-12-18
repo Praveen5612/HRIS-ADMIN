@@ -188,6 +188,14 @@ const Sidebar = ({
             >
               Software Reports
             </NavLink>
+
+            <NavLink
+              to="/admin/hr-management"
+              className="submenu-item"
+              onClick={onCloseMobile}
+            >
+              Hr-management
+            </NavLink>
           </div>
         )}
       </nav>

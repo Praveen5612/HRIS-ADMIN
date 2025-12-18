@@ -27,7 +27,8 @@ export default function CodeVerify({ onVerify }) {
     localStorage.setItem("auth_user", JSON.stringify(updated));
     onVerify(updated);
 
-    navigate("/admin/dashboard", { replace: true });
+    // ✅ ROLE-BASED LANDING
+    navigate("/", { replace: true });
   };
 
   return (

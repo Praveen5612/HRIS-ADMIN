@@ -111,3 +111,20 @@
     transform: translateY(0);
   }
 }
+
+.super-admin-btn {
+  margin-top: 12px;
+  background: transparent;
+  border: 1px solid #444;
+  color: #444;
+  padding: 10px;
+  width: 100%;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.super-admin-btn:hover {
+  background: #222;
+  color: #fff;
+}
