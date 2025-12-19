@@ -36,8 +36,21 @@ export default function DepartmentDesignation({ user }) {
 
   const [loading, setLoading] = useState(false);
 
-  const authFetch = (url, options = {}) =>
-    fetch(url, { credentials: "include", ...options });
+  /* ===============================
+     AUTH FETCH (FIXED)
+  ================================ */
+  const authFetch = (url, options = {}) => {
+    const token = localStorage.getItem("token");
+
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+  };
 
   /* ===============================
      LOADERS
@@ -58,7 +71,7 @@ export default function DepartmentDesignation({ user }) {
 
     const data = await res.json();
     setDesignations(
-      data.map(d => ({ ...d, employeeCount: d.employeeCount ?? 0 }))
+      data.map((d) => ({ ...d, employeeCount: d.employeeCount ?? 0 }))
     );
   };
 
@@ -75,7 +88,6 @@ export default function DepartmentDesignation({ user }) {
     setLoading(true);
     const res = await authFetch(`${API}/api/departments`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ department_name: newDept.trim() }),
     });
     setLoading(false);
@@ -92,7 +104,6 @@ export default function DepartmentDesignation({ user }) {
     setLoading(true);
     const res = await authFetch(`${API}/api/departments/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ department_name: editingDeptName }),
     });
     setLoading(false);
@@ -126,12 +137,12 @@ export default function DepartmentDesignation({ user }) {
      DESIGNATION CRUD
   ================================ */
   const createDesignation = async () => {
-    if (!canCreateDesignation || !newDesignation.trim() || !selectedDept) return;
+    if (!canCreateDesignation || !newDesignation.trim() || !selectedDept)
+      return;
 
     setLoading(true);
     const res = await authFetch(`${API}/api/designations`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         department_id: selectedDept.id,
         designation_name: newDesignation.trim(),
@@ -151,7 +162,6 @@ export default function DepartmentDesignation({ user }) {
     setLoading(true);
     const res = await authFetch(`${API}/api/designations/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ designation_name: editingDesigName }),
     });
     setLoading(false);
@@ -272,9 +282,7 @@ export default function DepartmentDesignation({ user }) {
                   <input
                     placeholder="New Designation"
                     value={newDesignation}
-                    onChange={(e) =>
-                      setNewDesignation(e.target.value)
-                    }
+                    onChange={(e) => setNewDesignation(e.target.value)}
                   />
                   <button onClick={createDesignation} disabled={loading}>
                     Add Designation
@@ -340,9 +348,7 @@ export default function DepartmentDesignation({ user }) {
                                   <button
                                     className="danger"
                                     disabled={d.employeeCount > 1}
-                                    onClick={() =>
-                                      deleteDesignation(d)
-                                    }
+                                    onClick={() => deleteDesignation(d)}
                                   >
                                     Delete
                                   </button>

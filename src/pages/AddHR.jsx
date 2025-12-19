@@ -15,6 +15,7 @@ const normalizeEmpId = (value) => {
 
 export default function AddHR() {
   const user = JSON.parse(localStorage.getItem("auth_user"));
+  const token = localStorage.getItem("token");
 
   // 🔐 HARD GUARD
   if (user?.role !== "COMPANY_ADMIN") {
@@ -33,20 +34,24 @@ export default function AddHR() {
   });
 
   const [normalizedEmpId, setNormalizedEmpId] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // 👁 toggle only
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingDepts, setLoadingDepts] = useState(false);
 
   /* ===============================
-     LOAD DEPARTMENTS
+     LOAD DEPARTMENTS (FIXED)
   ================================ */
   useEffect(() => {
     const loadDepartments = async () => {
       try {
         setLoadingDepts(true);
+
         const res = await fetch(`${API}/api/departments`, {
-          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
+
         if (!res.ok) throw new Error();
         setDepartments(await res.json());
       } catch {
@@ -57,13 +62,13 @@ export default function AddHR() {
     };
 
     loadDepartments();
-  }, []);
+  }, [token]);
 
   /* ===============================
      HANDLERS
   ================================ */
   const handleEmpIdChange = (val) => {
-    setForm(p => ({ ...p, empIdRaw: val }));
+    setForm((p) => ({ ...p, empIdRaw: val }));
     setNormalizedEmpId(normalizeEmpId(val));
   };
 
@@ -85,11 +90,13 @@ export default function AddHR() {
 
       const res = await fetch(`${API}/api/hr`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           empId: normalizedEmpId,
-          password: form.password, // 🔐 bcrypt handled in backend
+          password: form.password,
           department: form.department,
           designation: "HR",
         }),
@@ -114,7 +121,6 @@ export default function AddHR() {
   ================================ */
   return (
     <div className="add-hr-page">
-
       <form className="add-hr-form" onSubmit={submit}>
         {/* Company */}
         <input value={user.company} disabled />
@@ -123,7 +129,7 @@ export default function AddHR() {
         <select
           value={form.department}
           onChange={(e) =>
-            setForm(p => ({ ...p, department: e.target.value }))
+            setForm((p) => ({ ...p, department: e.target.value }))
           }
           disabled={loadingDepts}
         >
@@ -150,20 +156,20 @@ export default function AddHR() {
           </div>
         )}
 
-        {/* PASSWORD WITH TOGGLE */}
+        {/* PASSWORD */}
         <div className="password-field">
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Temporary password (min 8 chars)"
             value={form.password}
             onChange={(e) =>
-              setForm(p => ({ ...p, password: e.target.value }))
+              setForm((p) => ({ ...p, password: e.target.value }))
             }
           />
           <button
             type="button"
             className="toggle-btn"
-            onClick={() => setShowPassword(p => !p)}
+            onClick={() => setShowPassword((p) => !p)}
           >
             {showPassword ? "Hide" : "Show"}
           </button>
