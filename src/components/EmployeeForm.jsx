@@ -146,21 +146,17 @@ const EmployeeForm = ({ initial, onClose, onSave, departments = [] }) => {
               <input
                 placeholder="Employee Code"
                 value={form.employee_code}
-                disabled={isEdit}
                 onChange={(e) =>
-                  change(
-                    "employee_code",
-                    e.target.value.toUpperCase()
-                  )
+                  change("employee_code", e.target.value.toUpperCase())
                 }
               />
-              {!isEdit && (
-                <small className="hint">
-                  Last Employee ID for this company: <b>{lastEmpCode}</b>
-                </small>
-              )}
 
+              <small className="hint">
+                Last Employee ID used for this company:{" "}
+                <b>{lastEmpCode || "—"}</b>
+              </small>
             </div>
+
 
             <input
               placeholder="Enter full name as per Government ID"
