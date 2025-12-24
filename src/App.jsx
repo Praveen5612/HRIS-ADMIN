@@ -27,6 +27,7 @@ import Softwarereports from "./pages/Softwarereports";
 import EmployeeView from "./pages/EmployeeView";
 import AddHR from "./pages/AddHR";
 import HRLogin from "./pages/HRLogin";
+import SuperAdminRoutes from "./pages/super-admin";
 
 /* LAYOUT */
 import Sidebar from "./pages/Sidebar";
@@ -108,10 +109,9 @@ export default function App() {
         />
 
         {/* SUPER ADMIN (PUBLIC LOGIN PAGE) */}
-        <Route
-          path="/super-admin"
-          element={<SuperAdmin />}
-        />
+        <Route path="/super-admin/login" element={<SuperAdmin />} />
+        <Route path="/super-admin/*" element={<SuperAdminRoutes />} />
+
 
         {/* ROLE / OTP (UNCHANGED) */}
         <Route path="/role" element={<RoleGate />} />
@@ -130,6 +130,7 @@ export default function App() {
           path="/hr-login"
           element={<HRLogin onLogin={setUser} />}
         />
+        
 
       </Routes>
     </BrowserRouter>

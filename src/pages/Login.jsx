@@ -38,7 +38,7 @@ export default function Login({ onLogin }) {
   ============================= */
   const selectRole = (r) => {
     if (r === "SUPER_ADMIN") {
-      navigate("/super-admin", { replace: true });
+      navigate("/super-admin/login", { replace: true });
       return;
     }
 

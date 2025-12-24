@@ -1,10 +1,7 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Dashboard.css";
 
-/* =======================
-   Charts
-======================= */
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,8 +12,6 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
-import { makeEmployees } from "../utils/mockData.js";
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -25,227 +20,108 @@ ChartJS.register(
   Legend
 );
 
-/* =======================
-   CONSTANTS
-======================= */
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-const DEPARTMENTS = ["HR","Finance","IT","Sales","Operations","Marketing"];
-
-// 🔹 KEPT (NOT WIRED YET – AS REQUESTED)
-const COMPANIES = [
-  "Black Cube Technologies",
-  "Acme Corp",
-  "Innova Solutions",
-  "NextGen Systems",
-  "Demo Organization",
-];
-
-/* =======================
-   ATTENDANCE ENGINE
-======================= */
-function generateAttendance(employees) {
-  const weekly = {};
-  const deptWise = {};
-  const heatmap = {};
-  const lateArrivals = {};
-
-  DAYS.forEach(d => {
-    weekly[d] = 0;
-    heatmap[d] = {};
-    DEPARTMENTS.forEach(dep => (heatmap[d][dep] = 0));
-  });
-
-  DEPARTMENTS.forEach(dep => {
-    deptWise[dep] = 0;
-    lateArrivals[dep] = 0;
-  });
-
-  employees.forEach(emp => {
-    DAYS.forEach(day => {
-      if (Math.random() > 0.9) return;
-
-      weekly[day]++;
-      deptWise[emp.department]++;
-      heatmap[day][emp.department]++;
-
-      const arrivalMinutes = Math.floor(Math.random() * 90) + 540;
-      if (arrivalMinutes > 615) lateArrivals[emp.department]++;
-    });
-  });
-
-  return { weekly, deptWise, heatmap, lateArrivals };
-}
-
-/* =======================
-   DASHBOARD
-======================= */
-const Dashboard = ({ user }) => {
+const Dashboard = () => {
   const navigate = useNavigate();
 
-  // ✅ HOOKS FIRST (RULES-OF-HOOKS SAFE)
-  const employees = useMemo(() => makeEmployees(1000), []);
-  const attendance = useMemo(
-    () => generateAttendance(employees),
-    [employees]
-  );
-
-  // 🔐 GUARD AFTER HOOKS
-  if (!user?.company) {
-    return <h3>No company context found</h3>;
-  }
-
-  /* =======================
-     KPIs
-  ======================= */
-  const totalSalary = employees.reduce((s, e) => s + e.salary, 0);
-  const processedSalary = Math.floor(totalSalary * 0.85);
-  const pendingSalary = totalSalary - processedSalary;
-
-  const todayIndex = new Date().getDay();
-  const todayKey =
-    todayIndex >= 1 && todayIndex <= 5 ? DAYS[todayIndex - 1] : null;
-
-  const presentToday = todayKey ? attendance.weekly[todayKey] : 0;
-  const absentToday = employees.length - presentToday;
-  const onLeave = Math.floor(employees.length * 0.05);
-
-  /* =======================
-     CHARTS
-  ======================= */
-  const weeklyChart = {
-    labels: DAYS,
-    datasets: [{
-      label: "Attendance",
-      data: DAYS.map(d => attendance.weekly[d]),
-      backgroundColor: "#38bdf8",
-      borderRadius: 8,
-    }],
+  const dashboard = {
+    employees: { total: 0, inactive: 0 },
+    attendance: { present: 0, absent: 0, late: 0, ot: 0 },
+    approvals: { leave: 0, fnf: 0 },
+    salary: { status: "Running" },
+    cost: { payroll: 0, overtime: 0, esiPf: 0 },
   };
 
-  const deptChart = {
-    labels: DEPARTMENTS,
-    datasets: [{
-      label: "Department Attendance",
-      data: DEPARTMENTS.map(d => attendance.deptWise[d]),
-      backgroundColor: "#22c55e",
-      borderRadius: 8,
-    }],
-  };
-
-  const lateChart = {
-    labels: DEPARTMENTS,
-    datasets: [{
-      label: "Late Arrivals",
-      data: DEPARTMENTS.map(d => attendance.lateArrivals[d]),
-      backgroundColor: "#facc15",
-      borderRadius: 8,
-    }],
+  const chartData = {
+    labels: ["Present", "Absent", "Late", "Leave"],
+    datasets: [
+      {
+        data: [0, 0, 0, 0],
+        backgroundColor: ["#2563eb", "#ef4444", "#f59e0b", "#22c55e"],
+        borderRadius: 6,
+      },
+    ],
   };
 
   return (
-    <div className="dashboard-container">
-      <h2 className="dashboard-title">
-        {user.company} — HR Dashboard
-      </h2>
+    <div className="dash-wrap">
+      <h2 className="dash-title">HR & Payroll Dashboard</h2>
 
-      {/* ================= KPI GRID ================= */}
-      <div className="stats-grid four-col">
-        <KPI
-          title="Total Employees"
-          value={employees.length}
-          onClick={() => navigate("/admin/employees")}
-        />
-        <KPI
-          title="Present Today"
-          value={presentToday}
-          onClick={() => navigate("/admin/attendance")}
-        />
-        <KPI
-          title="Absent Today"
-          value={absentToday}
-          onClick={() => navigate("/admin/attendance")}
-        />
-        <KPI
-          title="On Leave"
-          value={onLeave}
-          onClick={() => navigate("/admin/leavemanagement")}
-        />
+      {/* KPI ROW */}
+      <div className="dash-kpis">
+        <div className="kpi-card">
+          <h4>Total Employees</h4>
+          <div className="kpi-main">{dashboard.employees.total}</div>
+          <span className="kpi-sub">{dashboard.employees.inactive} Inactive</span>
+          <button onClick={() => navigate("/admin/employees")}>View All</button>
+        </div>
 
-        <KPI
-          title="Total Salary"
-          value={`₹${totalSalary.toLocaleString()}`}
-        />
-        <KPI
-          title="Salary Processed"
-          value={`₹${processedSalary.toLocaleString()}`}
-          type="success"
-        />
-        <KPI
-          title="Salary Pending"
-          value={`₹${pendingSalary.toLocaleString()}`}
-          type="warning"
-        />
-        <KPI
-          title="Companies"
-          value={COMPANIES.length}
-          onClick={() => navigate("/admin/companies")}
-        />
+        <div className="kpi-card">
+          <h4>Today's Attendance</h4>
+          <div className="kpi-line">Present: {dashboard.attendance.present}</div>
+          <div className="kpi-sub">
+            Absent: {dashboard.attendance.absent} | Late: {dashboard.attendance.late} | OT: {dashboard.attendance.ot}
+          </div>
+          <button onClick={() => navigate("/admin/attendance")}>View Details</button>
+        </div>
+
+        <div className="kpi-card warning">
+          <h4>Pending Approvals</h4>
+          <div className="kpi-line">Leaves: {dashboard.approvals.leave}</div>
+          <div className="kpi-sub">F&F: {dashboard.approvals.fnf}</div>
+          <button className="orange">Review</button>
+        </div>
+
+        <div className="kpi-card success">
+          <h4>Salary Process</h4>
+          <div className="kpi-main green">{dashboard.salary.status}</div>
+          <button onClick={() => navigate("/admin/payroll")}>View Status</button>
+        </div>
       </div>
 
-      {/* ================= CHARTS ================= */}
-      <div className="split-section">
-        <section className="chart-section">
-          <h3>Weekly Attendance</h3>
-          <Bar data={weeklyChart} />
-        </section>
+      {/* MIDDLE */}
+      <div className="dash-grid-2">
+        <div className="card">
+          <h3>Compliance Alerts</h3>
+          <ul className="alerts">
+            <li className="alert red">ESI Due</li>
+            <li className="alert amber">PF Pending</li>
+            <li className="alert blue">Bonus Calculation</li>
+            <li className="alert green">Gratuity Reminder</li>
+          </ul>
+        </div>
 
-        <section className="chart-section">
-          <h3>Late Arrivals by Department</h3>
-          <Bar data={lateChart} />
-        </section>
+        <div className="card">
+          <h3>Monthly Cost Summary</h3>
+          <div className="cost-row">
+            <span>Total Payroll</span>
+            <b>₹ {dashboard.cost.payroll}</b>
+          </div>
+          <div className="cost-row">
+            <span>Overtime Cost</span>
+            <b>₹ {dashboard.cost.overtime}</b>
+          </div>
+          <div className="cost-row">
+            <span>ESI / PF Cost</span>
+            <b>₹ {dashboard.cost.esiPf}</b>
+          </div>
+        </div>
       </div>
 
-      <div className="split-section">
-        <section className="chart-section">
-          <h3>Department-wise Attendance</h3>
-          <Bar data={deptChart} />
-        </section>
+      {/* CHART */}
+      <div className="card full">
+        <h3>Attendance & Leave Reports</h3>
+        <Bar data={chartData} />
+      </div>
 
-        <section className="chart-section heatmap">
-          <h3>Attendance Heatmap</h3>
-          {DAYS.map(day => (
-            <div key={day} className="heatmap-row">
-              <span>{day}</span>
-              {DEPARTMENTS.map(dep => (
-                <div
-                  key={dep}
-                  className="heatmap-cell"
-                  style={{
-                    opacity:
-                      attendance.heatmap[day][dep] / employees.length
-                  }}
-                />
-              ))}
-            </div>
-          ))}
-        </section>
+      {/* ACTIONS */}
+      <div className="dash-actions">
+        <button onClick={() => navigate("/admin/payroll")}>Generate Payroll</button>
+        <button onClick={() => navigate("/admin/employees")}>Employee List</button>
+        <button onClick={() => navigate("/admin/attendance")}>Attendance Reports</button>
+        <button onClick={() => navigate("/admin/reports")}>Statutory Forms</button>
       </div>
     </div>
   );
 };
-
-/* =======================
-   KPI CARD
-======================= */
-const KPI = ({ title, value, type, onClick }) => (
-  <div
-    className={`stat-card ${type || ""}`}
-    onClick={onClick}
-    role="button"
-  >
-    <h3>{title}</h3>
-    <p>{value}</p>
-  </div>
-);
 
 export default Dashboard;

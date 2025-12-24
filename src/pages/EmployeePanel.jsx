@@ -9,10 +9,7 @@ import {
   getEmployees,
   createEmployee,
   updateEmployee,
-  // add these later when APIs are ready
-  // activateEmployee,
-  // deactivateEmployee,
-  // deleteEmployee,
+  toggleEmployeeStatus,
 } from "../api/employees.api";
 
 import { getDepartments } from "../api/master.api";
@@ -101,15 +98,57 @@ const EmployeePanel = () => {
   };
 
   const handleActivate = async (id) => {
-    console.log("Activate employee:", id);
-    // await activateEmployee(id);
-    loadEmployees();
+    const emp = employees.find((e) => e.id === id);
+    if (!emp) return;
+
+    // Confirm action
+    if (!window.confirm(`Activate ${emp.full_name}?`)) return;
+
+    try {
+      // Optimistic update - update UI immediately
+      setEmployees((prev) =>
+        prev.map((e) =>
+          e.id === id ? { ...e, is_active: 1 } : e
+        )
+      );
+
+      // Update in database
+      await updateEmployee(id, { is_active: 1 });
+      
+      // Reload to ensure sync with server
+      await loadEmployees();
+    } catch (err) {
+      // Revert on error
+      await loadEmployees();
+      alert(err.message || "Failed to activate employee");
+    }
   };
 
   const handleDeactivate = async (id) => {
-    console.log("Deactivate employee:", id);
-    // await deactivateEmployee(id);
-    loadEmployees();
+    const emp = employees.find((e) => e.id === id);
+    if (!emp) return;
+
+    // Confirm action
+    if (!window.confirm(`Deactivate ${emp.full_name}? This will set their status to inactive.`)) return;
+
+    try {
+      // Optimistic update - update UI immediately
+      setEmployees((prev) =>
+        prev.map((e) =>
+          e.id === id ? { ...e, is_active: 0 } : e
+        )
+      );
+
+      // Update in database
+      await updateEmployee(id, { is_active: 0 });
+      
+      // Reload to ensure sync with server
+      await loadEmployees();
+    } catch (err) {
+      // Revert on error
+      await loadEmployees();
+      alert(err.message || "Failed to deactivate employee");
+    }
   };
 
   const handleDelete = async (id) => {

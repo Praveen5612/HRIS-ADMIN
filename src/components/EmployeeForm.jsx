@@ -3,6 +3,23 @@ import "../styles/EmployeeForm.css";
 import { getDesignationsByDepartment } from "../api/master.api";
 import { getLastEmployeeCode } from "../api/employees.api";
 
+/* ===============================
+   CONSTANTS
+=============================== */
+const COUNTRY_CODES = [
+  { code: "+91", label: "🇮🇳 India" },
+  { code: "+1", label: "🇺🇸 USA" },
+  { code: "+44", label: "🇬🇧 UK" },
+  { code: "+61", label: "🇦🇺 Australia" },
+  { code: "+81", label: "🇯🇵 Japan" },
+  { code: "+49", label: "🇩🇪 Germany" },
+  { code: "+33", label: "🇫🇷 France" },
+  { code: "+971", label: "🇦🇪 UAE" },
+  { code: "+65", label: "🇸🇬 Singapore" },
+  { code: "+86", label: "🇨🇳 China" },
+  { code: "+7", label: "🇷🇺 Russia" },
+];
+
 const EMPTY_FORM = {
   employee_code: "",
   full_name: "",
@@ -23,9 +40,11 @@ const EmployeeForm = ({ initial, onClose, onSave, departments = [] }) => {
   const [form, setForm] = useState(EMPTY_FORM);
   const [designations, setDesignations] = useState([]);
   const [loadingDesignations, setLoadingDesignations] = useState(false);
-  const [lastEmpCode, setLastEmpCode] = useState("Loading...");
+  const [lastEmpCode, setLastEmpCode] = useState("—");
 
-  /* PREFILL / RESET */
+  /* ===============================
+     PREFILL / RESET
+  =============================== */
   useEffect(() => {
     if (initial) {
       setForm({
@@ -39,19 +58,40 @@ const EmployeeForm = ({ initial, onClose, onSave, departments = [] }) => {
     }
   }, [initial]);
 
-  /* FETCH LAST EMPLOYEE CODE (ADD ONLY) */
+  /* ===============================
+     AUTO-GENERATE EMP CODE
+  =============================== */
   useEffect(() => {
-    if (!isEdit) {
-      setLastEmpCode("Loading...");
-      getLastEmployeeCode()
-        .then((res) =>
-          setLastEmpCode(res.last_employee_code || "—")
-        )
-        .catch(() => setLastEmpCode("Unable to fetch"));
-    }
+    if (isEdit) return;
+
+    let mounted = true;
+    setLastEmpCode("Loading...");
+
+    getLastEmployeeCode()
+      .then((res) => {
+        if (!mounted) return;
+
+        const last = res?.last_employee_code;
+        setLastEmpCode(last || "—");
+
+        if (last) {
+          const next = Number(last.replace(/\D/g, "")) + 1;
+          setForm((p) => ({
+            ...p,
+            employee_code: `EMP${String(next).padStart(3, "0")}`,
+          }));
+        }
+      })
+      .catch(() => mounted && setLastEmpCode("Unable to fetch"));
+
+    return () => {
+      mounted = false;
+    };
   }, [isEdit]);
 
-  /* LOAD DESIGNATIONS BY DEPARTMENT */
+  /* ===============================
+     LOAD DESIGNATIONS
+  =============================== */
   useEffect(() => {
     if (!form.department_id) {
       setDesignations([]);
@@ -65,16 +105,23 @@ const EmployeeForm = ({ initial, onClose, onSave, departments = [] }) => {
       .finally(() => setLoadingDesignations(false));
   }, [form.department_id]);
 
-  const change = (key, value) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+  /* RESET DESIGNATION ON DEPT CHANGE */
+  useEffect(() => {
+    setForm((p) => ({ ...p, designation_id: "" }));
+  }, [form.department_id]);
 
-  /* SUBMIT */
+  const change = (key, value) =>
+    setForm((p) => ({ ...p, [key]: value }));
+
+  /* ===============================
+     SUBMIT
+  =============================== */
   const submit = (e) => {
     e.preventDefault();
 
     if (
       !form.employee_code ||
-      !form.full_name ||
+      !form.full_name.trim() ||
       !form.department_id ||
       !form.designation_id ||
       !form.joining_date ||
@@ -84,18 +131,27 @@ const EmployeeForm = ({ initial, onClose, onSave, departments = [] }) => {
       return;
     }
 
-    if (!isEdit && !form.password) {
-      alert("Temporary password is required");
+    if (new Date(form.joining_date) > new Date()) {
+      alert("Joining date cannot be in the future");
+      return;
+    }
+
+    if (!isEdit && form.password.length < 8) {
+      alert("Password must be at least 8 characters");
+      return;
+    }
+
+    if (form.phone && form.phone.length < 10) {
+      alert("Invalid phone number");
       return;
     }
 
     const payload = {
       employee_code: form.employee_code.trim(),
       full_name: form.full_name.trim(),
-      email: form.email || null,
-      phone: form.phone
-        ? `${form.country_code}${form.phone}`
-        : null,
+      email: form.email?.trim() || null,
+      country_code: form.country_code,
+      phone: form.phone || null,
       department_id: Number(form.department_id),
       designation_id: Number(form.designation_id),
       joining_date: form.joining_date,
@@ -107,29 +163,6 @@ const EmployeeForm = ({ initial, onClose, onSave, departments = [] }) => {
 
     onSave(payload);
   };
-
-  useEffect(() => {
-  let mounted = true;
-
-  if (!isEdit) {
-    setLastEmpCode("Loading...");
-    getLastEmployeeCode()
-      .then((res) => {
-        if (mounted) {
-          console.log("LAST CODE:", res);
-          setLastEmpCode(res?.last_employee_code ?? "—");
-        }
-      })
-      .catch(() => {
-        if (mounted) setLastEmpCode("Unable to fetch");
-      });
-  }
-
-  return () => {
-    mounted = false;
-  };
-}, [isEdit]);
-
 
   return (
     <div className="modal-backdrop">
@@ -144,26 +177,27 @@ const EmployeeForm = ({ initial, onClose, onSave, departments = [] }) => {
           <div className="row">
             <div className="field">
               <input
-                placeholder="Employee Code"
+                type="text"
                 value={form.employee_code}
                 onChange={(e) =>
                   change("employee_code", e.target.value.toUpperCase())
                 }
+                readOnly={isEdit}     // 🔑 key line
+                placeholder="Employee Code"
               />
 
-              <small className="hint">
-                Last Employee ID used for this company:{" "}
-                <b>{lastEmpCode || "—"}</b>
-              </small>
+              {!isEdit && (
+                <small className="hint">
+                  Last: <b>{lastEmpCode}</b>
+                </small>
+              )}
             </div>
 
-
             <input
-              placeholder="Enter full name as per Government ID"
+              type="text"
+              placeholder="Full name (Govt ID)"
               value={form.full_name}
-              onChange={(e) =>
-                change("full_name", e.target.value)
-              }
+              onChange={(e) => change("full_name", e.target.value)}
             />
           </div>
 
@@ -173,49 +207,49 @@ const EmployeeForm = ({ initial, onClose, onSave, departments = [] }) => {
               type="email"
               placeholder="example@gmail.com"
               value={form.email}
-              onChange={(e) =>
-                change("email", e.target.value)
-              }
+              onChange={(e) => change("email", e.target.value)}
             />
 
             <div className="phone-group">
               <select
+                className="country-code"
                 value={form.country_code}
                 onChange={(e) =>
                   change("country_code", e.target.value)
                 }
               >
-                <option value="+91">🇮🇳 +91</option>
-                <option value="+1">🇺🇸 +1</option>
-                <option value="+44">🇬🇧 +44</option>
+                {COUNTRY_CODES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label} ({c.code})
+                  </option>
+                ))}
               </select>
 
               <input
+                className="phone-input"
+                type="tel"
                 placeholder="Phone number"
                 value={form.phone}
                 onChange={(e) =>
-                  change(
-                    "phone",
-                    e.target.value.replace(/\D/g, "")
-                  )
+                  change("phone", e.target.value.replace(/\D/g, ""))
                 }
+                maxLength="15"
               />
             </div>
           </div>
 
           {/* PASSWORD */}
           {!isEdit && (
-            <div className="row">
-              <input
-                type="password"
-                placeholder="name@2025"
-                value={form.password}
-                onChange={(e) =>
-                  change("password", e.target.value)
-                }
-              />
-            </div>
+            <input
+              type="password"
+              placeholder="Temporary Password"
+              value={form.password}
+              onChange={(e) =>
+                change("password", e.target.value)
+              }
+            />
           )}
+          <br /><br />
 
           {/* DEPARTMENT + DESIGNATION */}
           <div className="row">
@@ -235,9 +269,7 @@ const EmployeeForm = ({ initial, onClose, onSave, departments = [] }) => {
 
             <select
               value={form.designation_id}
-              disabled={
-                !form.department_id || loadingDesignations
-              }
+              disabled={!form.department_id || loadingDesignations}
               onChange={(e) =>
                 change("designation_id", e.target.value)
               }
@@ -267,7 +299,7 @@ const EmployeeForm = ({ initial, onClose, onSave, departments = [] }) => {
             <input
               type="number"
               min="1"
-              placeholder="Salary (must be > 0)"
+              placeholder="Salary"
               value={form.salary}
               onChange={(e) =>
                 change("salary", e.target.value)
@@ -276,30 +308,22 @@ const EmployeeForm = ({ initial, onClose, onSave, departments = [] }) => {
           </div>
 
           {/* EMP TYPE */}
-          <div className="row">
-            <select
-              value={form.employment_type}
-              onChange={(e) =>
-                change("employment_type", e.target.value)
-              }
-            >
-              <option value="PERMANENT">Permanent</option>
-              <option value="CONTRACT">Contract</option>
-              <option value="INTERN">Intern</option>
-            </select>
-          </div>
+          <select
+            value={form.employment_type}
+            onChange={(e) =>
+              change("employment_type", e.target.value)
+            }
+          >
+            <option value="PERMANENT">Permanent</option>
+            <option value="CONTRACT">Contract</option>
+            <option value="INTERN">Intern</option>
+          </select>
 
           <div className="form-actions">
             <button className="btn primary" type="submit">
               Save
             </button>
-            <button
-              className="btn"
-              type="button"
-              onClick={onClose}
-            >
-              Cancel
-            </button>
+            
           </div>
         </form>
       </div>

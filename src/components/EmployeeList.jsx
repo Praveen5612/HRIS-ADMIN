@@ -11,6 +11,12 @@ import {
   CheckCircle,
 } from "lucide-react";
 
+const onEdit = (id) => {
+  setSelectedEmployeeId(id);
+  setShowForm(true);
+};
+
+
 /* =====================
    Pagination
 ===================== */
@@ -68,7 +74,7 @@ const EmployeeList = ({
   const filtered = useMemo(() => {
     let list = [...employees];
 
-    if (inactiveOnly) list = list.filter(e => e.is_active === 0);
+    if (inactiveOnly) list = list.filter(e => Number(e.is_active) === 0);
 
     if (q) {
       const qq = q.toLowerCase();
@@ -209,8 +215,10 @@ const EmployeeList = ({
         </thead>
 
         <tbody>
-          {current.map(emp => (
-            <tr key={emp.id} className={!emp.is_active ? "inactive-row" : ""}>
+          {current.map(emp => {
+            const isActive = Number(emp.is_active) === 1;
+            return (
+            <tr key={emp.id} className={!isActive ? "inactive-row" : ""}>
               <td><div className="emp-photo-placeholder">👤</div></td>
               <td>{emp.employee_code}</td>
               <td>{emp.full_name}</td>
@@ -221,21 +229,22 @@ const EmployeeList = ({
               <td>{emp.joining_date ? new Date(emp.joining_date).toLocaleDateString() : "-"}</td>
               <td>₹{Number(emp.salary || 0).toLocaleString()}</td>
               <td>
-                <span className={`status ${emp.is_active ? "active" : "inactive"}`}>
-                  {emp.is_active ? "Active" : "Inactive"}
+                <span className={`status ${isActive ? "active" : "inactive"}`}>
+                  {isActive ? "Active" : "Inactive"}
                 </span>
               </td>
 
               <td className="actions-cell">
                 <div className="row-actions">
                   <Link
-                    to={`/admin/employee/:id${emp.id}`}
+                    to={`/admin/employee/${emp.id}`}
                     state={{ employee: emp }}
                     className="emp-icon-btn view"
                     title="View"
                   >
                     <Eye size={18} />
                   </Link>
+
 
                   <button
                     onClick={() => onEdit(emp.id)}
@@ -245,7 +254,8 @@ const EmployeeList = ({
                     <Pencil size={18} />
                   </button>
 
-                  {emp.is_active ? (
+
+                  {isActive ? (
                     <button
                       onClick={() => onDeactivate(emp.id)}
                       className="emp-icon-btn deactivate"
@@ -273,7 +283,8 @@ const EmployeeList = ({
                 </div>
               </td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
 
