@@ -1,286 +1,555 @@
-/* ===============================
-   PAGE
-================================ */
+/* =========================================================
+   ROOT PAGE
+========================================================= */
 .dd-page {
-  padding: 24px 28px;
-  font-family: "Inter", system-ui, sans-serif;
-  color: #0f172a;
-  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
-  min-height: 100vh;
-  animation: fadeIn 0.6s ease;
+  width: 100%;
+  height: calc(100vh - 64px);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  overflow: hidden;
+  animation: fadeIn 0.3s ease;
 }
 
-.dd-page h2 {
-  font-size: 24px;
-  font-weight: 800;
-  margin-bottom: 18px;
-  letter-spacing: 0.3px;
-}
-
-/* ===============================
-   ACTION BAR
-================================ */
-.dd-actions {
-  display: flex;
-  gap: 14px;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
-}
-
-.dd-actions.inline {
-  margin-bottom: 20px;
-}
-
-.dd-actions input {
-  padding: 11px 16px;
-  border-radius: 14px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-  min-width: 220px;
-  background: #ffffff;
-  transition: border 0.25s ease, box-shadow 0.25s ease;
-}
-
-.dd-actions input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-}
-
-.dd-actions button {
-  padding: 11px 22px;
-  border: none;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s;
-}
-
-.dd-actions button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.35);
-}
-
-.dd-actions button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* ===============================
-   GRID
-================================ */
-.dd-grid {
-  display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
-  gap: 26px;
-}
-
-/* ===============================
-   CARD
-================================ */
-.card {
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 22px;
-  box-shadow:
-    0 12px 28px rgba(15, 23, 42, 0.08),
-    inset 0 0 0 1px rgba(15, 23, 42, 0.04);
+/* =========================================================
+   CONTENT WRAPPER - Reduced Height
+========================================================= */
+.dd-content {
+  height: calc(100vh - 120px);
+  max-width: 1400px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fff;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  animation: slideUp 0.5s ease;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  overflow: hidden;
 }
 
-.card h3 {
-  font-size: 16px;
+/* =========================================================
+   HEADER
+========================================================= */
+.dd-header {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.dd-header h2 {
+  font-size: 24px;
   font-weight: 700;
-  margin-bottom: 16px;
-  color: #020617;
+  color: #2c3e50;
+  margin: 0;
+  animation: slideDown 0.4s ease;
 }
 
-/* ===============================
-   DEPARTMENT LIST
-================================ */
-.dept-list {
+/* =========================================================
+   BRANCH SELECTOR
+========================================================= */
+.branch-selector {
+  text-align: center;
+  margin-bottom: 20px;
+  animation: slideDown 0.5s ease;
+}
+
+.branch-selector label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #444;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.branch-selector select {
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+  background: #fff;
+  min-width: 280px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.branch-selector select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   GRID LAYOUT - Tighter Spacing
+========================================================= */
+.dd-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  min-height: 0;
+  animation: fadeInUp 0.6s ease;
+}
+
+/* =========================================================
+   CARD PANELS - Optimized Height
+========================================================= */
+.card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+  height: 420px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.dept-panel, .desig-panel {
+  min-height: 420px;
+}
+
+/* =========================================================
+   PANEL HEADER - Compact
+========================================================= */
+.panel-header {
+  padding: 15px 18px;
+  border-bottom: 1px solid #eaeaea;
+  background: #f8f9fa;
+}
+
+.panel-header h3 {
+  margin: 0 0 12px 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.add-section {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.add-section input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1.5px solid #ddd;
+  transition: all 0.25s ease;
+  height: 34px;
+}
+
+.add-section input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  outline: none;
+}
+
+/* =========================================================
+   BUTTONS - Reduced Size
+========================================================= */
+
+/* Add Button - SMALLER */
+.btn-add {
+  padding: 6px 12px !important;
+  font-size: 11px !important;
+  min-height: 34px !important;
+  min-width: 60px !important;
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+  color: white !important;
+  border: none !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.btn-add:hover {
+  background: linear-gradient(135deg, #5a6fd8, #6a4190) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3) !important;
+}
+
+.btn-add:active {
+  transform: translateY(0) !important;
+}
+
+/* Action Buttons - EVEN SMALLER */
+.action-buttons button {
+  padding: 3px 8px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  min-height: 24px !important;
+  min-width: 45px !important;
+  border-radius: 5px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.3px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Edit Button */
+.btn-edit {
+  background: #4CAF50 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-edit:hover {
+  background: #45a049 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3) !important;
+}
+
+/* Delete Button */
+.btn-delete {
+  background: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-delete:hover {
+  background: #c82333 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3) !important;
+}
+
+/* Save Button */
+.btn-save {
+  background: #2196F3 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-save:hover {
+  background: #1976D2 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3) !important;
+}
+
+/* Cancel Button */
+.btn-cancel {
+  background: #6c757d !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-cancel:hover {
+  background: #5a6268 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px rgba(108, 117, 125, 0.3) !important;
+}
+
+/* Disabled state */
+button:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* =========================================================
+   PANEL CONTENT - Compact Scrollable Areas
+========================================================= */
+.panel-content {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+/* =========================================================
+   LIST STYLES - Compact
+========================================================= */
+.dept-list, .desig-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.dept-list li {
+.dept-item, .desig-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
-  border-radius: 16px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  font-size: 14px;
-  transition: background 0.25s ease, transform 0.2s ease;
+  animation: slideIn 0.4s ease forwards;
+  animation-delay: calc(var(--item-index, 0) * 0.05s);
 }
 
-.dept-list li:hover {
-  background: #f1f5f9;
-  transform: translateX(2px);
+.dept-item:hover {
+  background: #f0f0f0;
+  border-color: #e0e0e0;
+  transform: translateX(3px);
 }
 
-.dept-list li.active {
-  background: linear-gradient(135deg, #e0e7ff, #eef2ff);
-  font-weight: 700;
+.dept-item.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: #667eea;
+  color: white;
 }
 
-/* ===============================
-   ROW ACTIONS
-================================ */
-.row-actions {
-  display: flex;
-  gap: 8px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
+.dept-item.active .dept-name {
+  color: white;
+  font-weight: 600;
 }
 
-.dept-list li:hover .row-actions,
-.table tbody tr:hover .row-actions {
-  opacity: 1;
+.dept-item.active .btn-edit,
+.dept-item.active .btn-delete {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
-.row-actions button {
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  background: #e5e7eb;
-  color: #111827;
+.dept-item.active .btn-edit:hover,
+.dept-item.active .btn-delete:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
 }
 
-.row-actions button:hover {
-  background: #dbeafe;
-}
-
-.row-actions button.danger {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-/* ===============================
-   TABLE
-================================ */
-.table-wrapper {
+.dept-name, .desig-name {
   flex: 1;
-  overflow-y: auto;
-  border-radius: 16px;
-  border: 1px solid #e5e7eb;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
+  font-weight: 500;
   font-size: 14px;
+  color: #333;
+  padding-right: 8px;
 }
 
-.table thead {
-  background: linear-gradient(135deg, #0f172a, #020617);
+.desig-item .desig-name {
+  color: #444;
 }
 
-.table th {
-  padding: 14px 16px;
-  color: #ffffff;
-  font-weight: 600;
-  text-align: left;
-}
-
-.table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid #e5e7eb;
-  color: #020617;
-  vertical-align: middle;
-}
-
-/* ✅ FLEX WRAPPER INSIDE TD */
-.designation-cell {
+/* =========================================================
+   EDIT MODE - Compact
+========================================================= */
+.edit-mode {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-/* Inline edit input */
-.table td input {
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid #cbd5f5;
-  font-size: 13px;
+  gap: 8px;
   width: 100%;
 }
 
-/* DESIGNATION COUNT */
-.designation-count {
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #e0e7ff;
-  color: #1d4ed8;
-  font-weight: 600;
-  min-width: 48px;
+.edit-mode input {
+  flex: 1;
+  padding: 7px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 2px solid #667eea;
+  background: white;
+  height: 30px;
+  transition: all 0.25s ease;
+}
+
+.edit-mode input:focus {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  outline: none;
+}
+
+/* =========================================================
+   PLACEHOLDER STATES
+========================================================= */
+.panel-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #888;
   text-align: center;
+  padding: 30px;
+  animation: fadeIn 0.6s ease;
 }
 
-.table tbody tr:hover {
-  background: #f8fafc;
+.placeholder-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  color: #ccc;
+  opacity: 0.6;
 }
 
-/* ===============================
-   HINT
-================================ */
+.empty-item {
+  text-align: center;
+  padding: 20px;
+  color: #888;
+  font-style: italic;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 2px dashed #ddd;
+  animation: fadeIn 0.5s ease;
+}
+
+/* =========================================================
+   HINTS & WARNINGS
+========================================================= */
 .hint {
-  font-size: 14px;
-  color: #6b7280;
-  padding: 48px 0;
   text-align: center;
+  padding: 12px;
+  color: #666;
+  font-style: italic;
+  animation: fadeIn 0.5s ease;
 }
 
-/* ===============================
-   ANIMATIONS
-================================ */
+.hint.warning {
+  color: #e6a23c;
+  background: #fdf6ec;
+  border-radius: 6px;
+  margin: 10px 0;
+  border: 1px solid #faecd8;
+  animation: shake 0.5s ease;
+}
+
+/* =========================================================
+   SCROLLBAR STYLING - Slimmer
+========================================================= */
+.panel-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel-content::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 3px;
+}
+
+.panel-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+.panel-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* =========================================================
+   ANIMATIONS & TRANSITIONS
+========================================================= */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+/* Item enter animation */
+.dept-item, .desig-item {
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN
+========================================================= */
+@media (max-width: 1024px) {
+  .dd-content {
+    padding: 16px;
+    margin: 15px;
+    height: calc(100vh - 100px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  .dd-grid {
+    gap: 16px;
+  }
+  
+  .card {
+    height: 380px;
   }
 }
 
-/* ===============================
-   MOBILE
-================================ */
-@media (max-width: 1000px) {
+@media (max-width: 768px) {
   .dd-grid {
     grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
+    gap: 15px;
+  }
+  
+  .card {
+    height: 320px;
+    min-height: 320px;
+  }
+  
+  .panel-header {
+    padding: 12px 15px;
+  }
+  
+  .panel-content {
+    padding: 12px;
+  }
+  
+  .branch-selector select {
+    min-width: 240px;
+  }
+  
+  .dd-header h2 {
+    font-size: 20px;
   }
 }
 
-@media (max-width: 600px) {
-  .dd-page {
-    padding: 18px;
+@media (max-width: 480px) {
+  .dd-content {
+    padding: 12px;
+    margin: 10px;
+    height: calc(100vh - 80px);
   }
-
-  .dd-actions {
+  
+  .add-section {
     flex-direction: column;
+    gap: 6px;
   }
-
-  .dd-actions input,
-  .dd-actions button {
-    width: 100%;
+  
+  .edit-mode {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  
+  .action-buttons {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  
+  .action-buttons button {
+    padding: 2px 6px !important;
+    font-size: 9px !important;
+    min-height: 22px !important;
+    min-width: 40px !important;
+  }
+  
+  .btn-add {
+    padding: 5px 10px !important;
+    font-size: 10px !important;
+    min-height: 30px !important;
+    min-width: 55px !important;
+  }
+  
+  .card {
+    height: 300px;
   }
 }

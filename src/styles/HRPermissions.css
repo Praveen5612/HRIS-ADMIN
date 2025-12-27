@@ -1,0 +1,155 @@
+/* ===============================
+   HR PERMISSIONS PAGE
+================================ */
+
+.hr-permissions-page {
+  padding: 28px;
+  animation: fadeIn 0.4s ease;
+}
+
+.hr-permissions-page h2 {
+  margin-bottom: 4px;
+}
+
+.hr-permissions-page .hint {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+/* ===============================
+   TABLE WRAPPER
+================================ */
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow:
+    0 12px 28px rgba(15, 23, 42, 0.08),
+    inset 0 0 0 1px rgba(15, 23, 42, 0.05);
+}
+
+/* ===============================
+   PERMISSION TABLE
+================================ */
+
+.permission-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+}
+
+.permission-table thead {
+  background: linear-gradient(180deg, #f8fafc, #eef2ff);
+}
+
+.permission-table th {
+  padding: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #334155;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.permission-table td {
+  padding: 12px;
+  font-size: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  text-align: center;
+}
+
+.permission-table tr:hover {
+  background: #f8fafc;
+}
+
+/* ===============================
+   MODULE NAME COLUMN
+================================ */
+
+.permission-table .module-name {
+  text-align: left;
+  font-weight: 500;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+/* ===============================
+   CHECKBOX STYLING
+================================ */
+
+.permission-table input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #4f46e5;
+}
+
+/* ===============================
+   ACTIONS
+================================ */
+
+.actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.actions .primary {
+  padding: 10px 22px;
+  border-radius: 14px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(79, 70, 229, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.actions .primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(79, 70, 229, 0.45);
+}
+
+.actions .primary:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.35);
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 768px) {
+  .hr-permissions-page {
+    padding: 18px;
+  }
+
+  .permission-table th,
+  .permission-table td {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .actions {
+    justify-content: center;
+  }
+}
+
+/* ===============================
+   ANIMATIONS
+================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

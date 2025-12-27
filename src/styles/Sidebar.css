@@ -1,29 +1,30 @@
+/* =====================================================
+   SIDEBAR BASE
+===================================================== */
 .sidebar {
-  position: fixed;
-  top: 64px;
-  left: 0;
   width: 240px;
-  height: calc(100vh - 64px);
   background: #ffffff;
   border-right: 1px solid #e5e7eb;
   overflow-y: auto;
   overflow-x: hidden;
-  transition: width 0.28s ease;
+  transition: width 0.28s ease, transform 0.28s ease;
   z-index: 100;
-  pointer-events: auto;
 }
 
 .sidebar.collapsed {
   width: 72px;
 }
 
+/* =====================================================
+   MENU CONTAINER
+===================================================== */
 .sidebar-menu {
   padding: 12px;
-  position: relative;
-  z-index: 1;
-  pointer-events: auto;
 }
 
+/* =====================================================
+   MENU ITEM (BUTTON-LIKE, NO BG)
+===================================================== */
 .menu-item {
   display: flex;
   align-items: center;
@@ -32,45 +33,57 @@
   padding: 10px 12px;
   margin-bottom: 6px;
   border: none;
-  background: transparent;
-  border-radius: 8px;
-  color: #111827;
-  text-decoration: none;
+  background: transparent; /* 🔒 no background */
+  border-radius: 10px;
+  color: #374151;
   cursor: pointer;
   font-size: 14px;
   font-family: "Inter", system-ui, sans-serif;
   text-align: left;
-  transition: background 0.2s ease, color 0.2s ease;
-  pointer-events: auto;
-  position: relative;
-  z-index: 10;
+
+  transition:
+    color 0.18s ease,
+    transform 0.18s ease;
 }
 
+/* Hover: color + tiny slide */
 .menu-item:hover {
-  background: #f1f5f9;
-  color: #111827;
+  color: #2563eb;
+  transform: translateX(4px);
 }
 
+/* Active: soft emphasis, still no bg */
 .menu-item.active {
-  background: #2563eb;
-  color: #ffffff;
+  color: #2563eb;
+  font-weight: 600;
 }
 
+/* =====================================================
+   MENU LEFT (ICON + TEXT)
+===================================================== */
 .menu-left {
   display: flex;
   align-items: center;
   gap: 12px;
   flex: 1;
-  pointer-events: none;
 }
 
+/* Icons inherit color naturally */
+.menu-item svg {
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.menu-item:hover svg {
+  transform: scale(1.08);
+}
+
+/* =====================================================
+   SUBMENU
+===================================================== */
 .submenu {
   margin-left: 14px;
   margin-top: 6px;
-  animation: expandSubmenu 0.2s ease;
-  position: relative;
-  z-index: 5;
-  pointer-events: auto;
+  animation: expandSubmenu 0.22s ease;
 }
 
 @keyframes expandSubmenu {
@@ -84,6 +97,9 @@
   }
 }
 
+/* =====================================================
+   SUBMENU ITEM (LIGHTER)
+===================================================== */
 .submenu-item {
   display: flex;
   align-items: center;
@@ -92,59 +108,49 @@
   padding: 8px 12px;
   margin-bottom: 4px;
   border: none;
-  background: transparent;
+  background: transparent; /* 🔒 no background */
   border-radius: 8px;
-  font-size: 14px;
-  color: #374151;
-  text-decoration: none;
+  font-size: 13px;
+  color: #6b7280;
   cursor: pointer;
   font-family: "Inter", system-ui, sans-serif;
   text-align: left;
-  transition: background 0.2s ease, color 0.2s ease;
-  pointer-events: auto;
-  position: relative;
-  z-index: 10;
+
+  transition:
+    color 0.18s ease,
+    transform 0.18s ease;
 }
 
 .submenu-item:hover {
-  background: #f1f5f9;
-  color: #111827;
+  color: #2563eb;
+  transform: translateX(4px);
 }
 
-.app-content {
-  margin-left: 240px;
-  padding-top: 64px;
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-}
-
-.sidebar.collapsed ~ .app-content {
-  margin-left: 72px;
-}
-
+/* =====================================================
+   MOBILE
+===================================================== */
 @media (max-width: 768px) {
   .sidebar {
-    top: 64px;
-    left: -260px;
     width: 260px;
-    height: calc(100vh - 64px);
-    transition: left 0.3s ease;
-    z-index: 300;
-  }
-
-  .sidebar.mobile-open {
-    left: 0;
-  }
-
-  .app-content {
-    margin-left: 0 !important;
   }
 }
 
+/* =====================================================
+   OVERLAY
+===================================================== */
 .sidebar-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.35);
   z-index: 250;
+  animation: fadeOverlay 0.18s ease;
+}
+
+@keyframes fadeOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

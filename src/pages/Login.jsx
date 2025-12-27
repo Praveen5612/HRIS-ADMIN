@@ -70,11 +70,11 @@ export default function Login({ onLogin }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        companyId: Number(form.companyId),
-        company_id: Number(form.companyId), // backend-safe
+        company_id: Number(form.companyId),
         email: form.email.trim(),
         password: form.password,
       }),
+
     });
 
     const data = await res.json();
@@ -158,19 +158,19 @@ export default function Login({ onLogin }) {
       if (!res.ok) throw new Error(data.message);
 
       const user =
-        role === "HR"
-          ? {
-              role: "HR",
-              verified: true,
-              emp_id: data.emp_id,
-              department: data.department,
-              companyId: data.companyId,
-            }
-          : {
-              role: "COMPANY_ADMIN",
-              verified: true,
-              companyId: data.companyId || form.companyId,
-            };
+            role === "HR"
+              ? {
+                  role: "HR",
+                  verified: true,
+                  emp_id: data.emp_id,
+                  department: data.department,
+                  company_id: data.company_id, // 🔥 FIX
+                }
+              : {
+                  role: "COMPANY_ADMIN",
+                  verified: true,
+                  company_id: data.company_id, // 🔥 FIX
+                };
 
       // 🔐 STORE TOKEN (CRITICAL)
       if (data.token) {

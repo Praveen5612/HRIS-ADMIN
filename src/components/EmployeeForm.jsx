@@ -11,7 +11,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import "../styles/EmployeeForm.css";
-import { getDesignationsByDepartment, getEmployeeTypes, getShifts } from "../api/master.api";
+import { getDesignationsByDepartment, getEmployeeTypes, getShifts, getBranches } from "../api/master.api";
 import { getLastEmployeeCode } from "../api/employees.api";
 
 const EMPTY_FORM = {
@@ -26,16 +26,28 @@ const EMPTY_FORM = {
   phone: "",
   joining_date: "",
   salary: "",
+  confirmation_date: "",
+  notice_period_days: "",
+  payment_mode: "",
+  salary_type: "",
+  ctc_annual: "",
   company_name: "",
   job_location: "",
   site_location: "",
-  has_units: false,
+  has_multiple_branches: false,
+  branch_ids: [],
   company_unit: "",
   department_id: "",
   designation_id: "",
+  branch_id: "",
   experience_years: "",
   reference_name: "",
   reference_contact: "",
+
+  weekly_off_type: "",
+  ot_allowed: false,
+  ot_rate: "",
+  late_deduction_applicable: false,
   gender: "",
   dob: "",
   religion: "",
@@ -52,6 +64,11 @@ const EMPTY_FORM = {
   branch_name: "",
   pan: "",
   aadhaar: "",
+  uan_number: "",
+  esic_number: "",
+  pf_join_date: "",
+  esic_join_date: "",
+  is_disabled: false,
   esic_required: false,
   epf_required: false,
   pan_file: null,
@@ -68,6 +85,9 @@ const EMPTY_FORM = {
   id_card: null,
   id_card_history: null,
   documents: [],
+  pf_applicable: false,
+  esi_applicable: false,
+
 };
 
 const COUNTRY_CODES = [
@@ -108,19 +128,24 @@ const EmployeeForm = ({ initial, onSave, onClose, departments = [] }) => {
   const [designations, setDesignations] = useState([]);
   const [employeeTypes, setEmployeeTypes] = useState([]);
   const [shifts, setShifts] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (initial) {
       setForm({
-        ...EMPTY_FORM,
-        ...initial,
-        joining_date: initial.joining_date?.slice(0, 10) || "",
-        dob: initial.dob?.slice(0, 10) || "",
-        password: "",
-        employee_type_id: initial.employee_type_id || "",
-        shift_id: initial.shift_id || "",
-      });
+      ...EMPTY_FORM,
+      ...initial,
+      joining_date: initial.joining_date?.slice(0, 10) || "",
+      dob: initial.dob?.slice(0, 10) || "",
+      pf_join_date: initial.pf_join_date?.slice(0, 10) || "",
+      esic_join_date: initial.esic_join_date?.slice(0, 10) || "",
+      has_multiple_branches: Array.isArray(initial.branch_ids) && initial.branch_ids.length > 0,
+      branch_ids: initial.branch_ids || [],
+      branch_id: initial.branch_id || "",
+      password: "",
+    });
+
     } else {
       setForm({
         ...EMPTY_FORM,
@@ -179,6 +204,18 @@ const EmployeeForm = ({ initial, onSave, onClose, departments = [] }) => {
       .catch(() => {
         setShifts(MOCK_SHIFTS);
       });
+
+    getBranches()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setBranches(data);
+        } else {
+          setBranches([]);
+        }
+      })
+      .catch(() => {
+        setBranches([]);
+      });
   }, []);
 
   const change = (k, v) => {
@@ -192,7 +229,16 @@ const EmployeeForm = ({ initial, onSave, onClose, departments = [] }) => {
       designation_id: Number(form.designation_id) || null,
       employee_type_id: Number(form.employee_type_id) || null,
       shift_id: Number(form.shift_id) || null,
+
       salary: Number(form.salary) || 0,
+
+      branch_id: form.has_multiple_branches
+        ? null
+        : Number(form.branch_id) || null,
+
+      branch_ids: form.has_multiple_branches
+        ? form.branch_ids
+        : [],
     };
     if (isEdit) delete payload.password;
     onSave(payload);
@@ -345,7 +391,6 @@ const EmployeeForm = ({ initial, onSave, onClose, departments = [] }) => {
                 </select>
               </div>
             </div>
-
             <div className="form-grid">
               <div>
                 <label>Joining Date</label>
@@ -362,6 +407,40 @@ const EmployeeForm = ({ initial, onSave, onClose, departments = [] }) => {
                   placeholder="Monthly salary"
                   value={form.salary}
                   onChange={(e) => change("salary", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="form-grid">
+              <div>
+                <label>Confirmation Date</label>
+                <input
+                  type="date"
+                  value={form.confirmation_date}
+                  onChange={(e) => change("confirmation_date", e.target.value)}
+                />
+              </div>
+              <div>
+                <label>Notice Period (Days)</label>
+                <input
+                  type="number"
+                  placeholder="Notice period in days"
+                  value={form.notice_period_days}
+                  onChange={(e) => change("notice_period_days", e.target.value)}
+                />
+              </div>
+            </div>
+
+            
+
+            <div className="form-grid">
+              <div>
+                <label>CTC (Annual)</label>
+                <input
+                  type="number"
+                  placeholder="Cost to Company (Annual)"
+                  value={form.ctc_annual}
+                  onChange={(e) => change("ctc_annual", e.target.value)}
                 />
               </div>
             </div>
@@ -393,22 +472,58 @@ const EmployeeForm = ({ initial, onSave, onClose, departments = [] }) => {
             <label>
               <input
                 type="checkbox"
-                checked={form.has_units}
-                onChange={(e) => change("has_units", e.target.checked)}
+                checked={form.has_multiple_branches}
+                onChange={(e) =>
+                  change("has_multiple_branches", e.target.checked)
+                }
               />
-              Company has multiple units
+              Employee works in multiple branches
             </label>
-
-            {form.has_units && (
-              <>
-                <label>Company Unit / Branch</label>
-                <input
-                  placeholder="Unit / Branch name"
-                  value={form.company_unit}
-                  onChange={(e) => change("company_unit", e.target.value)}
-                />
-              </>
+            {form.has_multiple_branches && (
+              <div className="form-grid">
+                <div>
+                  <label>Select Branches</label>
+                  <select
+                    multiple
+                    value={form.branch_ids}
+                    onChange={(e) =>
+                      change(
+                        "branch_ids",
+                        Array.from(
+                          e.target.selectedOptions,
+                          (o) => Number(o.value)
+                        )
+                      )
+                    }
+                  >
+                    {branches.map((branch) => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.branch_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             )}
+            {!form.has_multiple_branches && (
+              <div className="form-grid">
+                <div>
+                  <label>Branch</label>
+                  <select
+                    value={form.branch_id || ""}
+                    onChange={(e) => change("branch_id", e.target.value)}
+                  >
+                    <option value="">Select Branch</option>
+                    {branches.map((branch) => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.branch_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
 
             <div className="form-grid">
               <div>
@@ -440,6 +555,7 @@ const EmployeeForm = ({ initial, onSave, onClose, departments = [] }) => {
                 </select>
               </div>
             </div>
+
 
             <div className="form-grid">
               <div>
@@ -610,6 +726,55 @@ const EmployeeForm = ({ initial, onSave, onClose, departments = [] }) => {
 
         {step === 3 && (
           <div className="emp-form-section">
+            <h4>Statutory Info</h4>
+
+            <div className="form-grid">
+              <div>
+                <label>UAN Number</label>
+                <input
+                  placeholder="Universal Account Number"
+                  value={form.uan_number}
+                  onChange={(e) => change("uan_number", e.target.value.replace(/\D/g, ""))}
+                />
+              </div>
+              <div>
+                <label>ESIC Number</label>
+                <input
+                  placeholder="ESIC Insurance Number"
+                  value={form.esic_number}
+                  onChange={(e) => change("esic_number", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="form-grid">
+              <div>
+                <label>PF Join Date</label>
+                <input
+                  type="date"
+                  value={form.pf_join_date}
+                  onChange={(e) => change("pf_join_date", e.target.value)}
+                />
+              </div>
+              <div>
+                <label>ESIC Join Date</label>
+                <input
+                  type="date"
+                  value={form.esic_join_date}
+                  onChange={(e) => change("esic_join_date", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={form.is_disabled}
+                onChange={(e) => change("is_disabled", e.target.checked)}
+              />
+              Is Disabled
+            </label>
+
             <h4>Identity & Statutory Documents</h4>
 
             <div className="form-grid">

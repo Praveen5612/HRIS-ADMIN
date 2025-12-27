@@ -33,6 +33,7 @@ const VALID_ROUTES = [
   "departments",
   "employee-types",
   "shifts",
+  "branches",
   "employee",
   "accounting",
   "softwarereports",
@@ -163,10 +164,32 @@ const Sidebar = ({ collapsed = false, mobileOpen = false, onCloseMobile, user: u
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    go("branches");
+                  }}
+                >
+                  <FaBuilding /> Branches
+                </button>
+                <button
+                  type="button"
+                  className="submenu-item"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     go("hr-management");
                   }}
                 >
                   <FaIdCard /> Add HR
+                </button>
+                <button
+                  type="button"
+                  className="submenu-item"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    go("hr/:hrId/permissions");
+                  }}
+                >
+                  <FaIdCard /> HR Permissions
                 </button>
               </div>
             )}

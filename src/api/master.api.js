@@ -16,4 +16,8 @@ export const getEmployeeTypes = () =>
 export const getShifts = () =>
   api("/api/shifts");
 
+/* BRANCHES */
+export const getBranches = () =>
+  api("/api/branches");
+
 

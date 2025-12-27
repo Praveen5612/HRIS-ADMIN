@@ -24,10 +24,12 @@ import AddHR from "./pages/AddHR";
 import HRLogin from "./pages/HRLogin";
 import EmployeeTypes from "./pages/EmployeeTypes";
 import Shifts from "./pages/Shifts";
+import BranchList from "./pages/BranchList";
 import SuperAdminRoutes from "./pages/super-admin";
 import Sidebar from "./pages/Sidebar";
 import Navbar from "./pages/Navbar";
 import "./styles/Layout.css";
+import HRPermissions from "./pages/HRPermissions";
 
 const RoleProtectedRoute = ({ children, allowedRoles, user }) => {
   if (!user || !allowedRoles.includes(user.role)) {
@@ -51,6 +53,7 @@ const AdminLayout = ({ user, setUser }) => {
     "/admin/departments",
     "/admin/employee-types",
     "/admin/shifts",
+    "/admin/branches",
     "/admin/hr-management",
     "/admin/accounting",
     "/admin/softwarereports",
@@ -113,6 +116,23 @@ const AdminLayout = ({ user, setUser }) => {
               </RoleProtectedRoute>
             }
           />
+          <Route
+            path="branches"
+            element={
+              <RoleProtectedRoute allowedRoles={["COMPANY_ADMIN"]} user={user}>
+                <BranchList user={user} />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+              path="hr/:hrId/permissions"
+              element={
+                <RoleProtectedRoute allowedRoles={["COMPANY_ADMIN"]} user={user}>
+                  <HRPermissions />
+                </RoleProtectedRoute>
+              }
+            />
+
           <Route
             path="companies"
             element={
